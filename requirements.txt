@@ -1,0 +1,7 @@
+flask
+celery
+requests
+redis
+git+git://github.com/phelimb/mykrobe-atlas-cli.git@cb6ef6e3211ceef59f6d81eed0637f3f67f228b3
+cython
+git+git://github.com/Phelimb/BIGSI.git@8704946e223663bdaf0a2ea8b23c8b2ceaa0a8a8
