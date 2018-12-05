@@ -1,3 +1,7 @@
+# Setup with minikube
+
+
+
 # A simple API to trigger mykrobe-atlas-cli analyses
 
 working dir /src/api

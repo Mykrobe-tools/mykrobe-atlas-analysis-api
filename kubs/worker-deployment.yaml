@@ -16,7 +16,7 @@ spec:
     spec:       
       containers:
       - name: analysis-worker
-        image: phelimb/mykrobe:api
+        image: phelimb/mykrobe-atlas-analysis-api
         command: ["celery"]
         args: ["-A", "app.celery", "worker"]
         envFrom:

@@ -18,7 +18,7 @@ spec:
         - name: private-registry-key
       containers:
       - name: analysis-api
-        image: phelimb/mykrobe:5b2f457a
+        image: phelimb/mykrobe-atlas-analysis-api:bf57a2681c
         command: ["flask"]
         args: ["run", "--port", "8080"]
         ports:
