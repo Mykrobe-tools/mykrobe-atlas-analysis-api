@@ -8,7 +8,10 @@ import redis
 import operator
 from collections import OrderedDict
 
-REDIS = redis.StrictRedis(db=2)
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+
+REDIS = redis.StrictRedis(REDIS_HOST, REDIS_PORT, db=2)
 SAMPLES_KEY = "samples"
 INTERMEDIATE_RESULT_EXPIRY = 300
 

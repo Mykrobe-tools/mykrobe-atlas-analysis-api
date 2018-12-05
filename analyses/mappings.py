@@ -4,7 +4,10 @@ import os
 sys.path.append("../src/api/")
 import redis
 
-REDIS = redis.StrictRedis(db=3)
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+
+REDIS = redis.StrictRedis(REDIS_HOST, REDIS_PORT, db=3)
 MAPPINGS_HKEY = "mappings"
 
 

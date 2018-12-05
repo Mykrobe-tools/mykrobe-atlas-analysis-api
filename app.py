@@ -15,6 +15,9 @@ from analyses import MappingsManager
 
 from celery import Celery
 
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
 DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
 ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
@@ -258,5 +261,4 @@ def query_results(query_id):
 
 @app.route("/trees", methods=["POST"])
 def tree_results():
-    print(request.data)
     return request.data, 200

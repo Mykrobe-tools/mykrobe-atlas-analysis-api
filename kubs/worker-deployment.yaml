@@ -15,6 +15,7 @@ spec:
     spec:       
       containers:
       - name: analysis-worker
-        image: phelimb/mykrobe-atlas-analysis-api:178dc6e67
+        image: phelimb/mykrobe-atlas-analysis-api:e14eb8ebd7
+        imagePullPolicy: Never        
         command: ["celery"]
         args: ["-A", "app.celery", "worker"]
