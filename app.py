@@ -15,7 +15,7 @@ from analyses import MappingsManager
 
 from celery import Celery
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
 DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
 ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
