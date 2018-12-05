@@ -1,5 +1,5 @@
 flask
 celery
 requests
-redis
-git+git://github.com/phelimb/mykrobe-atlas-cli.git@cb6ef6e3211ceef59f6d81eed0637f3f67f228b3
+redis==2.10.6
+
