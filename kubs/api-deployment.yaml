@@ -4,7 +4,6 @@ metadata:
   name: analysis-api
   labels:
     app: analysis-api  
-    tier: front    
 spec:
   selector:
     matchLabels:
