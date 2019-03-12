@@ -7,9 +7,9 @@ RUN pip install --upgrade pip
 COPY . /usr/src/app
 
 ## Install Mykrobe atlas cli
-RUN git clone -b api https://github.com/Mykrobe-tools/mykrobe-atlas-cli.git mykrobe-atlas-cli
-WORKDIR /usr/src/app/mykrobe-atlas-cli
-RUN wget -O mykrobe-data.tar.gz https://goo.gl/DXb9hN && tar -zxvf mykrobe-data.tar.gz && rm -fr src/mykrobe/data && mv mykrobe-data src/mykrobe/data
+RUN git clone -b 0.6.1 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
+WORKDIR /usr/src/app/mykrobe-predictor
+RUN wget -O mykrobe-data.tar.gz https://bit.ly/2H9HKTU && tar -zxvf mykrobe-data.tar.gz && rm -fr src/mykrobe/data && mv mykrobe-data src/mykrobe/data
 RUN pip install .
 
 
