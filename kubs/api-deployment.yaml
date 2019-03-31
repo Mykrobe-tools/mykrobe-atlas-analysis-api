@@ -13,16 +13,58 @@ spec:
       labels:
         app: analysis-api  
     spec:    
+      volumes:
+        - name: pv-storage-for-atlas
+          persistentVolumeClaim:
+           claimName: pv-claim-for-atlas           
       imagePullSecrets:
         - name: private-registry-key
       containers:
-      - name: analysis-api
-        image: phelimb/mykrobe-atlas-analysis-api:12mar19
+      - name: mykrobe-atlas-analysis
+        image: phelimb/mykrobe-atlas-analysis-api:31mar19
         imagePullPolicy: Never
         command: ["flask"]
         args: ["run", "--port", "8080"]
         ports:
           - containerPort: 8080
+        volumeMounts:
+          - mountPath: "/data/"
+            name: pv-storage-for-atlas          
+        envFrom:
+          - configMapRef:
+              name: env            
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: analysis-worker
+  labels:
+    app: analysis-worker
+spec:
+  selector:
+    matchLabels:
+      app: analysis-worker
+  template:
+    metadata:
+      labels:
+        app: analysis-worker
+    spec:      
+      volumes:
+        - name: pv-storage-for-atlas
+          persistentVolumeClaim:
+           claimName: pv-claim-for-atlas     
+      containers:
+      - name: mykrobe-atlas-analysis
+        image: phelimb/mykrobe-atlas-analysis-api
+        imagePullPolicy: Never        
+        command: ["celery"]
+        args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1",]          
+        volumeMounts:
+          - mountPath: "/data/"
+            name: pv-storage-for-atlas
+        envFrom:
+          - configMapRef:
+              name: env           
 ---
 apiVersion: v1
 kind: Service
