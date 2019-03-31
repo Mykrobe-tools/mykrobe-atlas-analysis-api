@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mykrobe-atlas-bigsi-aggregator-worker
+  labels:
+    app: mykrobe-atlas-bigsi-aggregator-worker     
+spec:
+  selector:
+    matchLabels:
+      app: mykrobe-atlas-bigsi-aggregator-worker
+  template:
+    metadata:
+      labels:
+        app: mykrobe-atlas-bigsi-aggregator-worker  
+    spec:                
+      containers:
+      - name: bigsi-aggregator
+        image: phelimb/bigsi-aggregator:936dc9f
+        command: ["celery"]
+        args: ["-A", "bigsi_aggregator.celery", "worker","--concurrency=1"]
+        envFrom:
+          - configMapRef:
+              name: mykrobe-atlas-bigsi-aggregator-env                         
+
+
