@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: mykrobe-atlas-bigsi-aggregator-ingress
+  name: bigsi-aggregator-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
@@ -10,5 +10,5 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: mykrobe-atlas-bigsi-aggregator
+          serviceName: bigsi-aggregator-api-service
           servicePort: 80

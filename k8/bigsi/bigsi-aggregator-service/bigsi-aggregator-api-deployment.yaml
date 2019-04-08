@@ -1,0 +1,75 @@
+apiVersion: v1
+data:
+  BIGSI_URLS: "http://mykrobe-atlas-bigsi-service" ## space seperated list of BIGSI service URLs
+  REDIS_IP: "redis"
+
+kind: ConfigMap
+metadata:
+  name: mykrobe-atlas-bigsi-aggregator-env
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mykrobe-atlas-bigsi-aggregator-api-deployment
+  labels:
+    app: mykrobe-atlas-bigsi-aggregator-api  
+    tier: front    
+spec:
+  selector:
+    matchLabels:
+      app: mykrobe-atlas-bigsi-aggregator-api
+  template:
+    metadata:
+      labels:
+        app: mykrobe-atlas-bigsi-aggregator-api  
+    spec:    
+      containers:
+      - name: mykrobe-atlas-bigsi-aggregator
+        image: phelimb/bigsi-aggregator:080419
+        command: ["/bin/sh"]
+        args: ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi"]
+        ports:
+          - containerPort: 80
+        envFrom:
+          - configMapRef:
+              name: mykrobe-atlas-bigsi-aggregator-env     
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mykrobe-atlas-bigsi-aggregator-worker
+  labels:
+    app: mykrobe-atlas-bigsi-aggregator-worker     
+spec:
+  selector:
+    matchLabels:
+      app: mykrobe-atlas-bigsi-aggregator-worker
+  template:
+    metadata:
+      labels:
+        app: mykrobe-atlas-bigsi-aggregator-worker  
+    spec:                
+      containers:
+      - name: mykrobe-atlas-bigsi-aggregator-worker
+        image: phelimb/bigsi-aggregator:080419
+        command: ["celery"]
+        args: ["-A", "bigsi_aggregator.celery", "worker","--concurrency=1"]
+        envFrom:
+          - configMapRef:
+              name: mykrobe-atlas-bigsi-aggregator-env                                  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mykrobe-atlas-bigsi-aggregator-api-service
+  labels:
+    app: mykrobe-atlas-bigsi-aggregator-api
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80     
+  selector:
+    app: mykrobe-atlas-bigsi-aggregator-api
+
+

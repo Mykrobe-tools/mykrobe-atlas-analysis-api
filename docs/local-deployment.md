@@ -14,42 +14,56 @@ kubectl set image deployment/analysis-api mykrobe-atlas-analysis=phelimb/mykrobe
 kubectl set image deployment/analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7};
 ```
 
-Setup the BIGSI service
+## Setup the BIGSI service
+
+Start minikube
 ```
-## BIGSI config
-kubectl create -f kubs/bigsi/bigsi-service/bigsi-config.yaml
-kubectl create -f kubs/bigsi/bigsi-service/env.yaml
+minikube start
+minikube mount /local/path/to/bigis_test_data/bigsi/:/data/bigsi/
+```
+
+In this example, the index file is called "test-bigsi-bdb" and will now be available via local filesystem at `/data/bigsi/test-bigsi-bdb` within the minikube VM. 
+
+In order to make this available from within a k8 pod, we first need a volume and volume claim. 
+
+```
 ## Volume mounts
-kubectl create -f kubs/bigsi/bigsi-service/pv-volume.yaml ## This needs to be updated to use a local path! 
-kubectl create -f kubs/bigsi/bigsi-service/pv-claim.yaml
-## BIGSI API services
-kubectl create -f kubs/bigsi/bigsi-service/bigsi-service.yaml
-kubectl create -f kubs/bigsi/bigsi-service/bigsi-deployment.yaml
+kubectl create -f k8/bigsi/bigsi-service/pv-volume.yaml
+kubectl create -f k8/bigsi/bigsi-service/pv-claim.yaml
+```
+
+Now, we can create the deployments and services
+
+```
+kubectl create -f k8/bigsi/bigsi-service/bigsi-deployment.yaml
+```
+
+
 ## You can test these are working by running 
+```
+kubectl exec -it mykrobe-atlas-bigsi-deployment-546888c6bd-tcz9s /bin/bash
+apt-get update -y && apt-get install curl -y
+curl localhost/search?seq=CGGCGAGGAAGCGTTAAATCTCTTTCTGACG 
+curl bigsi-1-service/search?seq=CGGCGAGGAAGCGTTAAATCTCTTTCTGACG 
+```
 
-kubectl exec -it bigsi-1-deployment-f6c8c9c5-76nzt 
-curl localhost:8001/search?seq=CGGCGAGGAAGCGTTAAATCTCTTTCTGACG 
-###(after installing curl if required)
+BIGSI aggregator requires a redis instance to cache the results from a query and as a celery broker.
 
-## nginx reverse proxy config + service (this is the where the bigsi-aggregator service will send requests)
-kubectl create configmap bigsi-1-nginx-configmap --from-file kubs/bigsi/bigsi-service/nginx/nginx.conf
-kubectl create -f kubs/bigsi/bigsi-service/nginx/nginx-service.yaml
-kubectl create -f kubs/bigsi/bigsi-service/nginx/nginx-deployment.yaml
+```
+kubectl create -f k8/redis-deployment.yaml
+```
 
-## kubectl exec -it bigsi-1-nginx-deployment-7dd488b66c-52kkv
-## curl localhost/search?seq=CGGCGAGGAAGCGTTAAATCTCTTTCTGACG
-## (after installing curl if required)
+Then create the aggregator service
 
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/env.yaml
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/bigsi-aggregator-service.yaml
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/bigsi-aggregator-api-deployment.yaml
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/bigsi-aggregator-worker-deployment.yaml
-kubectl create configmap bigsi-aggregator-nginxconfigmap --from-file kubs/bigsi/bigsi-aggregator-service/nginx/nginx.conf
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/nginx/nginx-service.yaml
-kubectl create -f kubs/bigsi/bigsi-aggregator-service/nginx/nginx-deployment.yaml
+```
+kubectl create -f k8/bigsi/bigsi-aggregator-service/bigsi-aggregator-api-deployment.yaml
+```
 
+## Test it's working by running from one of the pods
+```
+$ curl -X POST  -H "Content-Type: application/json"  -d '{"seq":"CGGCGAGGAAGCGTTAAATCTCTTTCTGACG"}' mykrobe-atlas-bigsi-aggregator-api-service/api/v1/searches/
+{"id": "7cddc4de43abdfab233a4a17", "seq": "CGGCGAGGAAGCGTTAAATCTCTTTCTGACG", "threshold": 100, "score": false, "completed_bigsi_queries": 0, "total_bigsi_queries": 1, "results": [], "status": "INPROGRESS"}
 
-
-
-
+$ curl mykrobe-atlas-bigsi-aggregator-api-service/api/v1/searches/7cddc4de43abdfab233a4a17
+{"id": "7cddc4de43abdfab233a4a17", "seq": "CGGCGAGGAAGCGTTAAATCTCTTTCTGACG", "threshold": 100, "score": false, "completed_bigsi_queries": 1, "total_bigsi_queries": 1, "results": [{"percent_kmers_found": 100, "num_kmers": "1", "num_kmers_found": "1", "sample_name": "s2", "score": null, "mismatches": null, "nident": null, "pident": null, "length": null, "evalue": null, "pvalue": null, "log_evalue": null, "log_pvalue": null, "kmer-presence": null}, {"percent_kmers_found": 100, "num_kmers": "1", "num_kmers_found": "1", "sample_name": "s1", "score": null, "mismatches": null, "nident": null, "pident": null, "length": null, "evalue": null, "pvalue": null, "log_evalue": null, "log_pvalue": null, "kmer-presence": null}], "status": "COMPLETE"}
 ```
