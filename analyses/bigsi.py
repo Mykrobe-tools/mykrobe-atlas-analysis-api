@@ -1,33 +1,38 @@
-# from bigsi.variants import BIGSIVariantSearch
-# from bigsi.variants import BIGSIAminoAcidMutationSearch
-# from bigsi.graph import BIGSI
+import requests
+import time
+from json import JSONDecodeError
 
-DNA_QUERY_NAME = "DNA"
-PROT_QUERY_NAME = "PROT"
-
-## TODO, BIGSI should call BIGSI API as a service, not import
 class BigsiTaskManager:
-    def __init__(self, bigsi_db_path, reference, genbank):
-        self.bigsi = BIGSI(bigsi_db_path)
-        self.bigsi_variant_search = BIGSIVariantSearch(self.bigsi, reference=reference)
-        self.bigsi_protien_search = BIGSIAminoAcidMutationSearch(
-            self.bigsi, reference=reference, genbank=genbank
-        )
+    def __init__(self, bigsi_api_url):
+        self.bigsi_api_url=bigsi_api_url
 
-    def _filter_genotypes(self, results):
-        o = {}
-        for var_name, _results in results.items():
-            o[var_name] = {}
-            for s, v in _results.items():
-                if sum([int(i) for i in v["genotype"].split("/") if i != "."]) >= 1:
-                    o[var_name][s] = v
-        return o
+    @property
+    def search_url(self):
+        return "/".join([self.bigsi_api_url, 'searches/'])
+    
+    def search_result_url(self, id):
+        return "".join([self.search_url, id]) 
 
     def seq_query(self, query):
-        return self.bigsi.search(**query)
+        r = requests.post(self.search_url, data = query).json()
+        _id=r["id"]
+        POLL=True
+        counter=0
+        while POLL:
+            r=requests.get(self.search_result_url(_id)).json()
+            if r["status"] == "COMPLETE":
+                POLL=False
+                return r
+            counter+=0
+            if counter > 30*10:
+                POLL=False
+                return {}
+            else:
+                time.sleep(1)
+            
 
     def dna_variant_query(self, query):
-        return self._filter_genotypes(self.bigsi_variant_search.search(**query))
+        raise NotImplementedError
 
     def protein_variant_query(self, query):
-        return self._filter_genotypes(self.bigsi_protien_search.search(**query))
+        raise NotImplementedError

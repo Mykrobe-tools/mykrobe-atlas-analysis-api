@@ -112,9 +112,7 @@ def predictor():
 
 ## BIGSI
 
-BIGSI_DB_PATH = os.environ.get("BIGSI_DB_PATH", "dbpath")
-TB_REFERENCE_PATH = os.environ.get("TB_REFERENCE_PATH", "ref.fa")
-TB_GENBANK_PATH = os.environ.get("TB_GENBANK_PATH", "ref.gb")
+BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1/")
 
 import hashlib
 
@@ -127,7 +125,7 @@ def _hash(w):
 
 @celery.task()
 def bigsi(query_type, query):
-    bigsi_tm = BigsiTaskManager(BIGSI_DB_PATH, TB_REFERENCE_PATH, TB_GENBANK_PATH)
+    bigsi_tm = BigsiTaskManager(BIGSI_URL)
     out = {}
     results = {
         "sequence": bigsi_tm.seq_query,
