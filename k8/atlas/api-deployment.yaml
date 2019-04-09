@@ -1,17 +1,17 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: analysis-api
+  name: mykrobe-atlas-analysis-api
   labels:
-    app: analysis-api  
+    app: mykrobe-atlas-analysis-api  
 spec:
   selector:
     matchLabels:
-      app: analysis-api
+      app: mykrobe-atlas-analysis-api
   template:
     metadata:
       labels:
-        app: analysis-api  
+        app: mykrobe-atlas-analysis-api  
     spec:    
       volumes:
         - name: pv-storage-for-atlas
@@ -37,17 +37,17 @@ spec:
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: analysis-worker
+  name: mykrobe-atlas-analysis-worker
   labels:
-    app: analysis-worker
+    app: mykrobe-atlas-analysis-worker
 spec:
   selector:
     matchLabels:
-      app: analysis-worker
+      app: mykrobe-atlas-analysis-worker
   template:
     metadata:
       labels:
-        app: analysis-worker
+        app: mykrobe-atlas-analysis-worker
     spec:      
       volumes:
         - name: pv-storage-for-atlas
@@ -69,13 +69,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: analysis-api
+  name: mykrobe-atlas-analysis-api
   labels:
-    app: analysis-api
+    app: mykrobe-atlas-analysis-api
 spec:
   type: NodePort
   ports:
   - port: 8080
     targetPort: 8080     
   selector:
-    app: analysis-api
+    app: mykrobe-atlas-analysis-api

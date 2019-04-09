@@ -2,6 +2,9 @@ import requests
 import time
 from json import JSONDecodeError
 
+MAX_POLL_COUNT=30*10
+POLL_INTERVAL_SECONDS=1
+
 class BigsiTaskManager:
     def __init__(self, bigsi_api_url):
         self.bigsi_api_url=bigsi_api_url
@@ -24,11 +27,15 @@ class BigsiTaskManager:
                 POLL=False
                 return r
             counter+=0
-            if counter > 30*10:
+            if counter > MAX_POLL_COUNT:
                 POLL=False
                 return {}
             else:
-                time.sleep(1)
+                time.sleep(POLL_INTERVAL_SECONDS)
+        if r["status"] == "COMPLETE":
+            return r 
+        else:
+            return {"error":"failed to complete bigsi query"}
             
 
     def dna_variant_query(self, query):

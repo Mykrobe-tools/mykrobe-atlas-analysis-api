@@ -23,6 +23,7 @@ DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
 ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
+BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1/")
 
 
 def make_celery(app):
@@ -112,7 +113,6 @@ def predictor():
 
 ## BIGSI
 
-BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1/")
 
 import hashlib
 

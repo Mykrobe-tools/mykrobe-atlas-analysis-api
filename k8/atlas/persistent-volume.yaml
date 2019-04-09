@@ -11,4 +11,4 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data" ## Make sure this path exists on the local machine, if you're using minikube this will be in the VM, not local disk.
+    path: "/data/atlas" ## Make sure this path exists on the local machine, if you're using minikube this will be in the VM, not local disk.
