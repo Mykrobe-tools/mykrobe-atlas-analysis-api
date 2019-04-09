@@ -21,7 +21,7 @@ spec:
         - name: private-registry-key
       containers:
       - name: mykrobe-atlas-analysis
-        image: phelimb/mykrobe-atlas-analysis-api:31mar19
+        image: phelimb/mykrobe-atlas-analysis-api:d4f78e3
         imagePullPolicy: Never
         command: ["flask"]
         args: ["run", "--port", "8080"]
@@ -55,7 +55,7 @@ spec:
            claimName: pv-claim-for-atlas     
       containers:
       - name: mykrobe-atlas-analysis
-        image: phelimb/mykrobe-atlas-analysis-api
+        image: phelimb/mykrobe-atlas-analysis-api:d4f78e3
         imagePullPolicy: Never        
         command: ["celery"]
         args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1",]          
