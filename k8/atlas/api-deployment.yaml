@@ -22,7 +22,6 @@ spec:
       containers:
       - name: mykrobe-atlas-analysis
         image: phelimb/mykrobe-atlas-analysis-api:d4f78e3
-        imagePullPolicy: Never
         command: ["flask"]
         args: ["run", "--port", "8080"]
         ports:
@@ -56,7 +55,6 @@ spec:
       containers:
       - name: mykrobe-atlas-analysis
         image: phelimb/mykrobe-atlas-analysis-api:d4f78e3
-        imagePullPolicy: Never        
         command: ["celery"]
         args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1",]          
         volumeMounts:

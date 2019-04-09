@@ -1,7 +1,7 @@
 # Setup with minikube
 
 ```
-minikube start
+minikube start --memory 3500
 ```
 
 Mount some test data
