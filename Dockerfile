@@ -18,4 +18,4 @@ RUN pip install .
 WORKDIR /usr/src/app/
 RUN pip install -r requirements.txt
 ENV FLASK_DEBUG=1
-CMD flask run --port 8080
+CMD uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi

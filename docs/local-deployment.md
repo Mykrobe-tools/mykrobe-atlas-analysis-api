@@ -28,6 +28,7 @@ Start minikube
 ```
 minikube start
 minikube mount /local/path/to/bigis_test_data/bigsi/:/data/bigsi/
+# minikube mount ~/Dropbox/Atlas/test_data/bigsi/:/data/bigsi/
 ```
 
 In this example, the index file is called "test-bigsi-bdb" and will now be available via local filesystem at `/data/bigsi/test-bigsi-bdb` within the minikube VM. 
