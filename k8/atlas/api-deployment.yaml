@@ -22,10 +22,10 @@ spec:
       containers:
       - name: mykrobe-atlas-analysis
         image: phelimb/mykrobe-atlas-analysis-api:d4f78e3
-        command: ["flask"]
-        args: ["run", "--port", "8080"]
+        command: ["/bin/sh"]
+        args: ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi:app"]
         ports:
-          - containerPort: 8080
+          - containerPort: 80
         volumeMounts:
           - mountPath: "/data/"
             name: pv-storage-for-atlas          
@@ -73,7 +73,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 8080
-    targetPort: 8080     
+  - port: 80
+    targetPort: 80     
   selector:
     app: mykrobe-atlas-analysis-api

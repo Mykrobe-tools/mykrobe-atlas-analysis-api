@@ -11,6 +11,7 @@ minikube mount /local/path/to/atlas_test_data/:/data/atlas/
 ```
 
 ```
+kubectl create -f k8/redis-deployment.yaml
 kubectl create -f k8/atlas
 
 eval $(minikube docker-env)
