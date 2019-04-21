@@ -25,7 +25,7 @@ spec:
     spec:    
       containers:
       - name: mykrobe-atlas-bigsi-aggregator
-        image: phelimb/bigsi-aggregator:080419
+        image: phelimb/bigsi-aggregator:210419
         command: ["/bin/sh"]
         args: ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi"]
         ports:
@@ -51,7 +51,7 @@ spec:
     spec:                
       containers:
       - name: mykrobe-atlas-bigsi-aggregator-worker
-        image: phelimb/bigsi-aggregator:080419
+        image: phelimb/bigsi-aggregator:210419
         command: ["celery"]
         args: ["-A", "bigsi_aggregator.celery", "worker","--concurrency=1"]
         envFrom:
