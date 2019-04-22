@@ -2,8 +2,8 @@
 
 working dir /src/api
 ```
-celery -A app.celery worker -E
-ATLAS_API="localhost:8080" DEFAULT_OUTDIR="/atlas/predictor-results/" CELERY_BROKER_URL='redis://localhost:6379' FLASK_DEBUG=1 FLASK_APP=app.py flask run --port 8080
+REDIS_HOST="localhost" ATLAS_API="http://localhost:8080" DEFAULT_OUTDIR="/atlas/predictor-results/" CELERY_BROKER_URL='redis://localhost:6379' FLASK_DEBUG=1 celery -A app.celery worker -E
+REDIS_HOST="localhost" ATLAS_API="http://localhost:8080" DEFAULT_OUTDIR="/atlas/predictor-results/" CELERY_BROKER_URL='redis://localhost:6379' FLASK_DEBUG=1 FLASK_APP=app.py flask run --port 8080
 ```
 
 ```

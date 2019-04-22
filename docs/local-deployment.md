@@ -99,3 +99,9 @@ curl -H "Content-Type: application/json" -X POST -d '{"file":"/data/XDR.fastq.gz
 curl -H "Content-Type: application/json" -X POST -d '{"file":"/data/non-mycobacterium_saur.fastq.gz", "experiment_id": "non-mycobacterium_saur_test"}' mykrobe-atlas-analysis-api/analyses
 ```
 
+## Test distance queries
+
+```
+curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test"}' mykrobe-atlas-analysis-api/distance
+
+```
