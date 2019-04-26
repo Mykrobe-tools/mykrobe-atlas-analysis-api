@@ -36,14 +36,14 @@ if [ $status_code == 200 ]; then
   echo
   curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/deployments/redis" \
-    -X PATCH -d @k8/redis-deployment.json
+    -X PATCH -d @k8/redis-deployment.yaml
 else
   echo
   echo "Creating deployment"
   echo
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/deployments" \
-    -X POST -d @k8/redis-deployment.json
+    -X POST -d @k8/redis-deployment.yaml
 fi
 
 echo
