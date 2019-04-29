@@ -5,6 +5,6 @@
   	"name": "mykrobe-atlas-bigsi-env"
   },
   "data": {
-  	"BIGSI_CONFIG": "/etc/bigsi/conf/config.yaml"
+
   }
 }
