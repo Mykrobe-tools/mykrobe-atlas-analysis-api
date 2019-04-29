@@ -38,8 +38,6 @@ if [ $status_code == 200 ]; then
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
     -X PATCH -d @mykrobe-atlas-bigsi-env.json
 else
-  cat bisgi/bigsi-service/mykrobe-atlas-bigsi-env.json
-
   echo
   echo "Creating BIGSI env config map"
   echo
