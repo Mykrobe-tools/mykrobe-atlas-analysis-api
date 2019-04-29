@@ -1,0 +1,19 @@
+{
+    "apiVersion": "v1",
+    "kind": "PersistentVolume",
+    "metadata": {
+        "name": "pv-volume-for-mykrobe-atlas-bigsi"
+    },
+    "spec": {
+        "storageClassName": "manual",
+        "capacity": {
+                "storage": "3Gi"
+            },
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "hostPath": {
+            "path": "/data/bigsi"
+        }
+    }
+}
