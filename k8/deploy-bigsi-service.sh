@@ -68,6 +68,56 @@ else
 fi
 
 echo
+echo "BIGSI service pv volume: $status_code"
+echo
+
+status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
+    -X GET -o /dev/null -w "%{http_code}")
+
+if [ $status_code == 200 ]; then
+  echo
+  echo "Updating BIGSI service pv volume"
+  echo
+  curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
+    -X PATCH -d @k8/bigsi/bigsi-service/pv-volume.json
+else
+  echo
+  echo "Creating BIGSI service pv volume"
+  echo
+
+  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/" \
+    -X POST -d @k8/bigsi/bigsi-service/pv-volume.json
+fi
+
+echo
+echo "BIGSI service pv claim: $status_code"
+echo
+
+status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumeclaims/pv-claim-for-mykrobe-atlas-bigsi" \
+    -X GET -o /dev/null -w "%{http_code}")
+
+if [ $status_code == 200 ]; then
+  echo
+  echo "Updating BIGSI service pv volume"
+  echo
+  curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumeclaims/pv-claim-for-mykrobe-atlas-bigsi" \
+    -X PATCH -d @k8/bigsi/bigsi-service/pv-claim.json
+else
+  echo
+  echo "Creating BIGSI service pv volume"
+  echo
+
+  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumeclaims/" \
+    -X POST -d @k8/bigsi/bigsi-service/pv-claim.json
+fi
+
+echo
 echo "BIGSI service deployment status: $status_code"
 echo
 
