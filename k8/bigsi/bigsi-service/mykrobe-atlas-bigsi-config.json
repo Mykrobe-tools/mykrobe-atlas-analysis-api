@@ -5,15 +5,6 @@
   	"name": "mykrobe-atlas-bigsi-env"
   },
   "data": {
-  	"config.yaml": "\
-    h: 1 \
-    k: 31 \
-    m: 28000000 \
-    nproc: 1 \
-    storage-engine: berkeleydb \
-    storage-config: \
-      filename: /data/test-bigsi-bdb \
-      flag: \"c\" \
-    "
+  	"config.yaml": "\nh: 1\nk: 31\nm: 28000000\nnproc: 1\nstorage-engine: berkeleydb\nstorage-config:\n\tfilename: /data/test-bigsi-bdb\n\tflag: \"c\"\n"
   }
 }
