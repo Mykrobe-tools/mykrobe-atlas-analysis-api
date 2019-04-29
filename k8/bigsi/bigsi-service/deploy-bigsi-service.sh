@@ -36,7 +36,7 @@ if [ $status_code == 200 ]; then
   echo
   curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
-    -X PATCH -d @k8/bisgi/bigsi-service/mykrobe-atlas-bigsi-env.json
+    -X PATCH -d @mykrobe-atlas-bigsi-env.json
 else
   cat bisgi/bigsi-service/mykrobe-atlas-bigsi-env.json
 
@@ -45,5 +45,5 @@ else
   echo
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
-    -X POST -d @k8/bisgi/bigsi-service/mykrobe-atlas-bigsi-env.json
+    -X POST -d @mykrobe-atlas-bigsi-env.json
 fi
