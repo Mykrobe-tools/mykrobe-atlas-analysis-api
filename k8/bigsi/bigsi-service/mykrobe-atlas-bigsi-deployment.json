@@ -1,0 +1,71 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-bigsi-deployment",
+		"labels": {
+			"app": "mykrobe-atlas-bigsi",
+			"tier": "front"
+		}
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-bigsi"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-bigsi"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "pv-storage-for-mykrobe-atlas-bigsi",
+						"persistentVolumeClaim": {
+							"claimName": "pv-claim-for-mykrobe-atlas-bigsi"
+						}
+					},
+					{
+						"name": "configmap-volume",
+						"configMap": {
+							"name": "mykrobe-atlas-bigsi-config"
+						}
+					}
+				],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-bigsi",
+						"image": "phelimb/bigsi:080419",
+						"command": ["/bin/sh"],
+						"args": ["-c","uwsgi --enable-threads --http :80 --wsgi-file bigsi/__main__.py --callable __hug_wsgi__ --processes=4 --buffer-size=32768 --harakiri=300000"],
+						"ports": [
+							{
+								"containerPort": 80
+							}
+						],
+						"volumeMounts": [
+							{
+								"mountPath": "/data/",
+								"name": "pv-storage-for-mykrobe-atlas-bigsi"
+							},
+							{
+								"mountPath": "/etc/bigsi/conf/",
+								"name": "configmap-volume"
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "mykrobe-atlas-bigsi-env "
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}

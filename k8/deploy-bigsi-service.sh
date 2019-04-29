@@ -66,3 +66,28 @@ else
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-config.json
 fi
+
+echo
+echo "BIGSI service deployment status: $status_code"
+echo
+
+status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/deployments/mykrobe-atlas-bigsi-deployment" \
+    -X GET -o /dev/null -w "%{http_code}")
+
+if [ $status_code == 200 ]; then
+  echo
+  echo "Updating BIGSI config config map"
+  echo
+  curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/deployments/mykrobe-atlas-bigsi-deployment" \
+    -X PATCH -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-deployment.json
+else
+  echo
+  echo "Creating BIGSI config config map"
+  echo
+
+  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/deployments" \
+    -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-deployment.json
+fi
