@@ -47,4 +47,8 @@ else
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
+  echo "inline"
+  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
+    -X POST -d '{"apiVersion": "v1", "kind": "ConfigMap", "metadata": { "name": "mykrobe-atlas-bigsi-env" }, "data": { "BIGSI_CONFIG": "/etc/bigsi/conf/config.yaml"}}'
 fi
