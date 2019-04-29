@@ -39,7 +39,12 @@ else
   echo
   echo "Creating BIGSI env config map"
   echo
+  echo "normal"
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
+  echo "k8"
+  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
+    -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
 fi
