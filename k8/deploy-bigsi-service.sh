@@ -34,35 +34,13 @@ if [ $status_code == 200 ]; then
   echo
   curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
-    -X PATCH -d @bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
+    -X PATCH -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
 else
   echo
   echo "Creating BIGSI env config map"
   echo
-  file="bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json"
-  if [ -f "$file" ]
-  then
-    echo "$file found."
-  else
-    echo "$file not found."
-  fi
-  file="k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json"
-  if [ -f "$file" ]
-  then
-    echo "$file found."
-  else
-    echo "$file not found."
-  fi
-    echo "normal"
-  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
-    -X POST -d @bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
-  echo "k8"
+
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
-  echo "inline"
-  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
-    -X POST -d '{"apiVersion": "v1", "kind": "ConfigMap", "metadata": { "name": "mykrobe-atlas-bigsi-env" }, "data": { "BIGSI_CONFIG": "/etc/bigsi/conf/config.yaml"}}'
 fi
