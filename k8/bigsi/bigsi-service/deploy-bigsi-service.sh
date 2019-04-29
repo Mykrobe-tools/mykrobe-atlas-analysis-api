@@ -17,11 +17,6 @@ if [ -z $KUBERNETES_PORT_443_TCP_PORT ]; then
   echo "FATAL: Environment Variable KUBERNETES_PORT_443_TCP_PORT must be specified."
   exit ${2:-1}
 fi
-
-curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps" \
-    -X GET
-
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta2/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
     -X GET -o /dev/null -w "%{http_code}")
