@@ -1,0 +1,10 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "data": {
+  	"BIGSI_CONFIG": "/etc/bigsi/conf/config.yaml"
+  },
+  "metadata": {
+  	"name": "mykrobe-atlas-bigsi-env"
+  }
+}
