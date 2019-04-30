@@ -43,6 +43,8 @@ else
     -X POST -d @k8/bigsi/bigsi-service/pv-volume.json
 fi
 
+echo
+
 # --------------------------------------------------------------
 
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
@@ -66,6 +68,8 @@ else
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumeclaims/" \
     -X POST -d @k8/bigsi/bigsi-service/pv-claim.json
 fi
+
+echo
 
 # --------------------------------------------------------------
 
@@ -91,6 +95,8 @@ else
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
 fi
 
+echo
+
 # --------------------------------------------------------------
 
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
@@ -115,13 +121,15 @@ else
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-config.json
 fi
 
+echo
+
 # --------------------------------------------------------------
 
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta1/namespaces/$NAMESPACE/deployments/mykrobe-atlas-bigsi-deployment" \
     -X GET -o /dev/null -w "%{http_code}")
-
 echo
+
 echo "BIGSI service deployment status: $status_code"
 
 if [ $status_code == 200 ]; then
