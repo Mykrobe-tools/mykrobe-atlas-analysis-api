@@ -28,12 +28,8 @@ echo "Service port: $KUBERNETES_PORT_443_TCP_PORT"
 # --------------------------------------------------------------
 
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
     -X GET -o /dev/null -w "%{http_code}")
-
-curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
-    -X GET
 
 echo
 echo "BIGSI service pv volume: $status_code"
@@ -43,14 +39,14 @@ if [ $status_code == 200 ]; then
   echo
 
   curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
     -X PATCH -d @k8/bigsi/bigsi-service/pv-volume.json
 else
   echo "Creating BIGSI service pv volume"
   echo
 
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/persistentvolumes" \
     -X POST -d @k8/bigsi/bigsi-service/pv-volume.json
 fi
 
