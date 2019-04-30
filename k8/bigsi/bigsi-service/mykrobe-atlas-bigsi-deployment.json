@@ -60,7 +60,7 @@
 						"envFrom": [
 							{
 								"configMapRef": {
-									"name": "mykrobe-atlas-bigsi-env "
+									"name": "mykrobe-atlas-bigsi-env"
 								}
 							}
 						]
