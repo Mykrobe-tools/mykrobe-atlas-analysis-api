@@ -2,7 +2,7 @@
   "apiVersion": "v1",
   "kind": "ConfigMap",
   "metadata": {
-  	"name": "mykrobe-atlas-bigsi-aggregator.env",
+  	"name": "mykrobe-atlas-bigsi-aggregator-env",
     "namespace": "mykrobe"
   },
   "data": {
