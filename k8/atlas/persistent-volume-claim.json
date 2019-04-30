@@ -1,0 +1,19 @@
+{
+    "apiVersion": "v1",
+    "kind": "PersistentVolumeClaim",
+    "metadata": {
+        "name": "pv-claim-for-atlas",
+    	"namespace": "mykrobe"
+    },
+    "spec": {
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "resources": {
+            "requests": {
+                "storage": "100Gi"
+            }
+        },
+        "storageClassName": "manual"
+    }
+}
