@@ -24,6 +24,7 @@ status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
     -X GET -o /dev/null -w "%{http_code}")
 
+echo
 echo "BIGSI service pv volume: $status_code"
 
 if [ $status_code == 200 ]; then
@@ -48,6 +49,7 @@ status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumeclaims/pv-claim-for-mykrobe-atlas-bigsi" \
     -X GET -o /dev/null -w "%{http_code}")
 
+echo
 echo "BIGSI service pv claim: $status_code"
 
 if [ $status_code == 200 ]; then
@@ -71,6 +73,7 @@ status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
     -X GET -o /dev/null -w "%{http_code}")
 
+echo
 echo "BIGSI env config map status: $status_code"
 
 if [ $status_code == 200 ]; then
@@ -94,6 +97,7 @@ status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-config" \
     -X GET -o /dev/null -w "%{http_code}")
 
+echo
 echo "BIGSI config config map status: $status_code"
 
 if [ $status_code == 200 ]; then
@@ -117,6 +121,7 @@ status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/apps/v1beta1/namespaces/$NAMESPACE/deployments/mykrobe-atlas-bigsi-deployment" \
     -X GET -o /dev/null -w "%{http_code}")
 
+echo
 echo "BIGSI service deployment status: $status_code"
 
 if [ $status_code == 200 ]; then
