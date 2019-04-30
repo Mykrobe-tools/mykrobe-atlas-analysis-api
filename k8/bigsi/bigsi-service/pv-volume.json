@@ -5,7 +5,8 @@
         "name": "pv-volume-for-mykrobe-atlas-bigsi",
         "labels": {
             "type": "local"
-        }
+        },
+        "namespace": "mykrobe"
     },
     "spec": {
         "storageClassName": "manual",

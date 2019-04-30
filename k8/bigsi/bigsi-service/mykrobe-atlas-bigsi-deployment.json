@@ -6,7 +6,8 @@
 		"labels": {
 			"app": "mykrobe-atlas-bigsi",
 			"tier": "front"
-		}
+		},
+    	"namespace": "mykrobe"
 	},
 	"spec": {
 		"selector": {

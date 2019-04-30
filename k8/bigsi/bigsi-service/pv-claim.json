@@ -2,7 +2,8 @@
     "apiVersion": "v1",
     "kind": "PersistentVolumeClaim",
     "metadata": {
-        "name": "pv-claim-for-mykrobe-atlas-bigsi"
+        "name": "pv-claim-for-mykrobe-atlas-bigsi",
+    	"namespace": "mykrobe"
     },
     "spec": {
         "accessModes": [

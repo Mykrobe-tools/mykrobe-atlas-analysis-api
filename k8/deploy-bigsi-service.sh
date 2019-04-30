@@ -20,6 +20,13 @@ fi
 
 # --------------------------------------------------------------
 
+echo
+echo "Namespace: $NAMESPACE"
+echo "Service host: $KUBERNETES_SERVICE_HOST"
+echo "Service port: $KUBERNETES_PORT_443_TCP_PORT"
+
+# --------------------------------------------------------------
+
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
     -X GET -o /dev/null -w "%{http_code}")
