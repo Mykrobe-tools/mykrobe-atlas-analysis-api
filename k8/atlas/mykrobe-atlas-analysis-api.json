@@ -29,9 +29,9 @@
 						}
 					}
 				],
-				"imagePullSecrets": {
+				"imagePullSecrets": [{
         			"name": "private-registry-key"
-        		},
+        		}],
 				"containers": [
 					{
 						"name": "mykrobe-atlas-analysis",
