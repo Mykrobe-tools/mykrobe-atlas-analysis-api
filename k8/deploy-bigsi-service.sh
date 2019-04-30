@@ -17,9 +17,8 @@ if [ -z $KUBERNETES_PORT_443_TCP_PORT ]; then
   echo "FATAL: Environment Variable KUBERNETES_PORT_443_TCP_PORT must be specified."
   exit ${2:-1}
 fi
-status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
-    -X GET -o /dev/null -w "%{http_code}")
+
+# --------------------------------------------------------------
 
 echo
 echo "BIGSI service pv volume: $status_code"
@@ -33,6 +32,7 @@ if [ $status_code == 200 ]; then
   echo
   echo "Updating BIGSI service pv volume"
   echo
+  
   curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/pv-volume-for-mykrobe-atlas-bigsi" \
     -X PATCH -d @k8/bigsi/bigsi-service/pv-volume.json
@@ -42,9 +42,11 @@ else
   echo
 
   curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
-    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes/" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/persistentvolumes" \
     -X POST -d @k8/bigsi/bigsi-service/pv-volume.json
 fi
+
+# --------------------------------------------------------------
 
 echo
 echo "BIGSI service pv claim: $status_code"
@@ -71,6 +73,12 @@ else
     -X POST -d @k8/bigsi/bigsi-service/pv-claim.json
 fi
 
+# --------------------------------------------------------------
+
+status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+    "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-env" \
+    -X GET -o /dev/null -w "%{http_code}")
+
 echo
 echo "BIGSI env config map status: $status_code"
 echo
@@ -91,6 +99,8 @@ else
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-env.json
 fi
+
+# --------------------------------------------------------------
 
 status_code=$(curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps/mykrobe-atlas-bigsi-config" \
@@ -116,6 +126,8 @@ else
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/configmaps" \
     -X POST -d @k8/bigsi/bigsi-service/mykrobe-atlas-bigsi-config.json
 fi
+
+# --------------------------------------------------------------
 
 echo
 echo "BIGSI service deployment status: $status_code"
