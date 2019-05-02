@@ -223,14 +223,14 @@ if [ $status_code == 200 ]; then
 
  curl -H 'Content-Type: application/strategic-merge-patch+json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/extensions/v1beta1/namespaces/$NAMESPACE/ingresses/analysis-api-ingress" \
-    -X PATCH -d @atlas-analysis-api-ingress.json
+    -X PATCH -d @k8/atlas-analysis-api-ingress.json
 else
  echo "Creating ingress"
  echo
 
  curl -H 'Content-Type: application/json' -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/apis/extensions/v1beta1/namespaces/$NAMESPACE/ingresses" \
-    -X POST -d @atlas-analysis-api-ingress.json
+    -X POST -d @k8/atlas-analysis-api-ingress.json
 fi
 
 echo
