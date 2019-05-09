@@ -24,13 +24,10 @@ class BigsiTaskManager:
     def prot_variant_search_url(self):
         return "/".join([self.bigsi_api_url, "variant_searches/"])
 
-    def search_result_url(self, id):
-        return "".join([self.search_url, id])
-
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
         _id = r["id"]
-        search_result_url = "".join([search_url, id])
+        search_result_url = "".join([search_url, _id])
         POLL = True
         counter = 0
         while POLL:
