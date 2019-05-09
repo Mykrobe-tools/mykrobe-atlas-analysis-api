@@ -18,6 +18,7 @@ eval $(minikube docker-env)
 COMMIT=`git log --pretty=oneline | head -n 1 | cut -f 1 -d ' '`
 echo ${COMMIT:0:7} 
 docker build -t phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7} . 
+docker push phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7}
 
 kubectl set image deployment/mykrobe-atlas-analysis-api mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7};
 kubectl set image deployment/mykrobe-atlas-analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7};
