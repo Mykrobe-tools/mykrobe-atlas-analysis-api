@@ -86,5 +86,18 @@ $ curl mykrobe-atlas-bigsi-aggregator-api-service/api/v1/searches/7cddc4de43abdf
 curl -H "Content-Type: application/json" -X POST -d '{"file":"/data/exemplar_seqeuence_data/MDR.fastq.gz", "experiment_id": "MDR_test"}' mykrobe-atlas-analysis-api/analyses
 ```
 
+### Distance queries 
+```
+curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test"}' mykrobe-atlas-analysis-api/distance
+curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test", "distance_type":"tree-distance"}' mykrobe-atlas-analysis-api/distance
+curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test", "distance_type":"nearest-neighbour"}' mykrobe-atlas-analysis-api/distance
 
+curl mykrobe-atlas-analysis-api/tree/latest
+
+
+```
+
+## Update image
+sudo kubectl set image deployment/mykrobe-atlas-analysis-api mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:4b693cf;
+sudo kubectl set image deployment/mykrobe-atlas-analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:4b693cf;
 

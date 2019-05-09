@@ -197,7 +197,7 @@ def get_tree_isolates():
 
 
 TREE_ISOLATES = get_tree_isolates()
-DEFAULT_MAX_NN_DISTANCE = 12
+DEFAULT_MAX_NN_DISTANCE = 10000
 DEFAULT_MAX_NN_EXPERIMENTS = 100
 
 
