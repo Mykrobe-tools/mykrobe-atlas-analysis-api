@@ -31,7 +31,7 @@ class BigsiTaskManager:
         POLL = True
         counter = 0
         while POLL:
-            r = requests.get(search_result_url(_id)).json()
+            r = requests.get(search_result_url).json()
             if r["status"] == "COMPLETE":
                 POLL = False
                 return r
