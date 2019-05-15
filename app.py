@@ -24,8 +24,10 @@ ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
 BIGSI_URL = os.environ.get(
-    "BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1/"
+    "BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1"
 )
+REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
+GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
 
 def make_celery(app):
@@ -126,19 +128,16 @@ def _hash(w):
 
 
 @celery.task()
-def bigsi(query_type, query):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL)
+def bigsi(query_type, query, user_id, result_id):
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
         "sequence": bigsi_tm.seq_query,
         "dna-variant": bigsi_tm.dna_variant_query,
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
-    out["results"] = results
-    out["query"] = query
+    out = results
     query_id = _hash(json.dumps(query))
-    user_id = query["user_id"]
-    result_id = query["result_id"]
     url = os.path.join(ATLAS_API, "users", user_id, "results", result_id)
     send_results(query_type, out, url, request_type="PUT")
 
@@ -148,7 +147,9 @@ def search():
     data = request.get_json()
     t = data.get("type", "")
     query = data.get("query", "")
-    res = bigsi.delay(t, query)
+    user_id = data.get("user_id", "")
+    result_id = data.get("result_id", "")
+    res = bigsi.delay(t, query, user_id, result_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 
@@ -197,7 +198,7 @@ def get_tree_isolates():
 
 
 TREE_ISOLATES = get_tree_isolates()
-DEFAULT_MAX_NN_DISTANCE = 12
+DEFAULT_MAX_NN_DISTANCE = 10000
 DEFAULT_MAX_NN_EXPERIMENTS = 100
 
 

@@ -18,6 +18,7 @@ eval $(minikube docker-env)
 COMMIT=`git log --pretty=oneline | head -n 1 | cut -f 1 -d ' '`
 echo ${COMMIT:0:7} 
 docker build -t phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7} . 
+# docker push phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7}
 
 kubectl set image deployment/mykrobe-atlas-analysis-api mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7};
 kubectl set image deployment/mykrobe-atlas-analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:${COMMIT:0:7};
@@ -108,6 +109,16 @@ curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test
 curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test", "distance_type":"nearest-neighbour"}' mykrobe-atlas-analysis-api/distance
 
 curl mykrobe-atlas-analysis-api/tree/latest
+```
 
+## Test BIGSI queries
+
+```
+
+curl -H "Content-Type: application/json" -X POST -d '{"type":"sequence","query":{"seq":"CGGTCAGTCCGTTTGTTCTTGTGGCGAGTGTTGCCGTTTTCTTG",  "user_id": "1234567", "result_id": "2345678" } }' mykrobe-atlas-analysis-api/search
+
+curl -H "Content-Type: application/json" -X POST -d '{"type":"dna-variant","query":{ "ref": "C", "pos":32, "alt":"T"}, "user_id": "1234567"}' mykrobe-atlas-analysis-api/search
+
+curl -H "Content-Type: application/json" -X POST -d '{"type":"protein-variant","query":{ "ref": "S", "pos":450, "alt":"L",  "gene":"rpoB"}, "user_id": "1234567" }' mykrobe-atlas-analysis-api/search
 
 ```

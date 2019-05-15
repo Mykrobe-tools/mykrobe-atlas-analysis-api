@@ -21,7 +21,7 @@ spec:
         - name: private-registry-key
       containers:
       - name: mykrobe-atlas-analysis
-        image: phelimb/mykrobe-atlas-analysis-api:5a22af2
+        image: phelimb/mykrobe-atlas-analysis-api:c53ab32
         command: ["/bin/sh"]
         args: ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi:app"]
         ports:
@@ -54,7 +54,7 @@ spec:
            claimName: pv-claim-for-atlas     
       containers:
       - name: mykrobe-atlas-analysis
-        image: phelimb/mykrobe-atlas-analysis-api:5a22af2
+        image: phelimb/mykrobe-atlas-analysis-api:c53ab32
         command: ["celery"]
         args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1",]          
         volumeMounts:
