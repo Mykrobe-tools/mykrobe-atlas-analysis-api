@@ -128,7 +128,7 @@ def _hash(w):
 
 
 @celery.task()
-def bigsi(query_type, query):
+def bigsi(query_type, query, user_id, result_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
@@ -138,8 +138,6 @@ def bigsi(query_type, query):
     }[query_type](query)
     out = results
     query_id = _hash(json.dumps(query))
-    user_id = query["user_id"]
-    result_id = query["result_id"]
     url = os.path.join(ATLAS_API, "users", user_id, "results", result_id)
     send_results(query_type, out, url, request_type="PUT")
 
@@ -149,7 +147,9 @@ def search():
     data = request.get_json()
     t = data.get("type", "")
     query = data.get("query", "")
-    res = bigsi.delay(t, query)
+    user_id = data.get("user_id", "")
+    result_id = data.get("result_id", "")
+    res = bigsi.delay(t, query, user_id, result_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 

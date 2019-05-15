@@ -35,7 +35,7 @@ class BigsiTaskManager:
             if r["status"] == "COMPLETE":
                 POLL = False
                 return r
-            counter += 0
+            counter += 1
             if counter > MAX_POLL_COUNT:
                 POLL = False
                 return {}
@@ -55,7 +55,7 @@ class BigsiTaskManager:
         return self._query(query, search_url)
 
     def dna_variant_query(self, query):
-        search_url = self.sequence_search_url
+        search_url = self.variant_search_url
         # query: {
         #     ref: "A",
         #     alt: "T",
@@ -72,7 +72,7 @@ class BigsiTaskManager:
         #     pos: 450,
         #     gene: "rpoB"
         # }
-        search_url = self.sequence_search_url
+        search_url = self.prot_variant_search_url
         query["reference"] = self.reference_filepath
         query["genbank"] = self.genbank_filepath
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'

@@ -98,6 +98,6 @@ curl mykrobe-atlas-analysis-api/tree/latest
 ```
 
 ## Update image
-sudo kubectl set image deployment/mykrobe-atlas-analysis-api mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:a12fa4f;
-sudo kubectl set image deployment/mykrobe-atlas-analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:a12fa4f;
+sudo kubectl set image deployment/mykrobe-atlas-analysis-api mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:973654a;
+sudo kubectl set image deployment/mykrobe-atlas-analysis-worker mykrobe-atlas-analysis=phelimb/mykrobe-atlas-analysis-api:973654a;
 
