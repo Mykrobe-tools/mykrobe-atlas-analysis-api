@@ -115,10 +115,10 @@ curl mykrobe-atlas-analysis-api/tree/latest
 
 ```
 
-curl -H "Content-Type: application/json" -X POST -d '{"type":"sequence","query":{"seq":"CGGTCAGTCCGTTTGTTCTTGTGGCGAGTGTTGCCGTTTTCTTG",  "user_id": "1234567", "result_id": "2345678" } }' mykrobe-atlas-analysis-api/search
+curl -H "Content-Type: application/json" -X POST -d '{"type":"sequence","query":{"seq":"CGGTCAGTCCGTTTGTTCTTGTGGCGAGTGTTGCCGTTTTCTTG"},  "user_id": "1234567", "result_id": "2345678"  }' mykrobe-atlas-analysis-api/search
 
-curl -H "Content-Type: application/json" -X POST -d '{"type":"dna-variant","query":{ "ref": "C", "pos":32, "alt":"T"}, "user_id": "1234567"}' mykrobe-atlas-analysis-api/search
+curl -H "Content-Type: application/json" -X POST -d '{"type":"dna-variant","query":{ "ref": "C", "pos":32, "alt":"T"}, "user_id": "1234567", "result_id": "2345678" }' mykrobe-atlas-analysis-api/search
 
-curl -H "Content-Type: application/json" -X POST -d '{"type":"protein-variant","query":{ "ref": "S", "pos":450, "alt":"L",  "gene":"rpoB"}, "user_id": "1234567" }' mykrobe-atlas-analysis-api/search
+curl -H "Content-Type: application/json" -X POST -d '{"type":"protein-variant","query":{ "ref": "S", "pos":450, "alt":"L",  "gene":"rpoB"}, "user_id": "1234567", "result_id": "2345678"  }' mykrobe-atlas-analysis-api/search
 
 ```
