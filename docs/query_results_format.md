@@ -15,16 +15,32 @@ The analysis engine will 1) Run predictor and post results, 2) Run genotype 3) R
 curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test"}' mykrobe-atlas-analysis-api/distance
 ```
 
+Response
+```
+{"type": "distance", "result": {"MDR_test": 1730, "test": 1012}, "subType": "all"}'
+```
+Note: this seems to be broken, but nearest-neighbour is the preferred call anyway as it limits the total results. 
+
 ### Tree distance
 ```
 curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test", "distance_type":"tree-distance"}' mykrobe-atlas-analysis-api/distance
 ```
 
-### Nearest Neighbour
+Response
 ```
-curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "MDR_test", "distance_type":"nearest-neighbour"}' mykrobe-atlas-analysis-api/distance
+{"type": "distance", "result": {"tree_sample1": 1730, "tree_sample2": 1012}, "subType": "tree-distance"}'
 ```
 
+
+### Nearest Neighbour
+```
+curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "XDR_test", "distance_type":"nearest-neighbour"}' mykrobe-atlas-analysis-api/distance
+```
+
+Response
+```
+{"type": "distance", "result": {"MDR_test": 1730, "test": 1012}, "subType": "nearest-neighbour"}
+```
 
 
 # Search queries
