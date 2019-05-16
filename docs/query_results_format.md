@@ -8,6 +8,11 @@ curl -H "Content-Type: application/json" -X POST -d '{"file":"/data/exemplar_seq
 Response
 The analysis engine will 1) Run predictor and post results, 2) Run genotype 3) Run nearest neighbour and tree distance search and POST the results
 
+### Results Endpoint 
+```
+POST ATLAS_API/experiments/:experiment_id/results
+```
+
 # Distance queries 
 
 ### Standard distance query (against all)
@@ -40,6 +45,11 @@ curl -H "Content-Type: application/json" -X POST -d '{"experiment_id": "XDR_test
 Response
 ```
 {"type": "distance", "result": {"MDR_test": 1730, "test": 1012}, "subType": "nearest-neighbour"}
+```
+
+### Results Endpoint 
+```
+POST ATLAS_API/experiments/:experiment_id/results
 ```
 
 
@@ -77,4 +87,10 @@ curl -H "Content-Type: application/json" -X POST -d '{"type":"protein-variant","
 Reponse
 ```
 {"type": "protein-variant", "result": {"id": "0602c248018836fb157cdeef", "reference": "/data/NC_000962.3.fasta", "ref": "S", "pos": 450, "alt": "L", "genbank": "/data/NC_000962.3.gb", "gene": "rpoB", "completed_bigsi_queries": 2, "total_bigsi_queries": 1, "results": [{"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/XDR.bloom", "genotype": "1/1"}, {"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/RIF_monoresistant.bloom", "genotype": "0/1"}, {"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/MDR_1.bloom", "genotype": "1/1"}, {"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/MDR.bloom", "genotype": "1/1"}, {"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/INH_monoresistant.bloom", "genotype": "0/1"}, {"sample_name": "/Users/phelimb/Dropbox/Atlas/test_data/bigsi/bloom/MDR_2.bloom", "genotype": "1/1"}], "status": "COMPLETE", "citation": "http://dx.doi.org/10.1038/s41587-018-0010-1"}}
+```
+
+### Results Endpoint 
+
+```
+PUT ATLAS_API/users/:user_id/results/:result_id
 ```
