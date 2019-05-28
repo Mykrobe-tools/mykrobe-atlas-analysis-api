@@ -100,8 +100,8 @@ def genotype_task(file, experiment_id):
     ## Insert distance results
     DistanceTaskManager().insert(results)
     # ## Trigger distance tasks
-    res = distance_task.delay(experiment_id, experiment_id, "tree-distance")
-    res = distance_task.delay(experiment_id, experiment_id, "nearest-neighbour")
+    res = distance_task.delay(experiment_id, "tree-distance")
+    res = distance_task.delay(experiment_id, "nearest-neighbour")
 
 
 @app.route("/analyses", methods=["POST"])
@@ -138,8 +138,8 @@ def bigsi(query_type, query, user_id, result_id):
     }[query_type](query)
     out = results
     query_id = _hash(json.dumps(query))
-    url = os.path.join(ATLAS_API, "users", user_id, "results", result_id)
-    send_results(query_type, out, url, request_type="PUT")
+    url = os.path.join(ATLAS_API, "searches", result_id, "results")
+    send_results(query_type, out, url, request_type="POST")
 
 
 @app.route("/search", methods=["POST"])
@@ -203,22 +203,20 @@ DEFAULT_MAX_NN_EXPERIMENTS = 100
 
 
 @celery.task()
-def distance_task(
-    isolate_id, experiment_id, distance_type, max_distance=None, limit=None
-):
+def distance_task(experiment_id, distance_type, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
     if distance_type == "all":
-        results = DistanceTaskManager().distance(isolate_id, sort=True)
+        results = DistanceTaskManager().distance(experiment_id, sort=True)
     elif distance_type == "tree-distance":
         results = DistanceTaskManager().distance(
-            isolate_id, samples=TREE_ISOLATES, sort=True
+            experiment_id, samples=TREE_ISOLATES, sort=True
         )
     elif distance_type == "nearest-neighbour":
         results = DistanceTaskManager().distance(
-            isolate_id, max_distance=max_distance, limit=limit, sort=True
+            experiment_id, max_distance=max_distance, limit=limit, sort=True
         )
     else:
         raise TypeError("%s is not a valid query" % distance_type)
@@ -233,8 +231,7 @@ def distance():
     distance_type = data.get("distance_type", "all")
     kwargs = data.get("params", {})
     assert distance_type in ["all", "tree-distance", "nearest-neighbour"]
-    isolate_id = MAPPER.experiment_id_to_isolate_id(experiment_id)
-    res = distance_task.delay(isolate_id, experiment_id, distance_type, **kwargs)
+    res = distance_task.delay(experiment_id, distance_type, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 
