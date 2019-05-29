@@ -142,6 +142,7 @@ def bigsi(query_type, query, user_id, search_id):
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
     out = results
+    print(out)
     query_id = _hash(json.dumps(query))
     url = os.path.join(ATLAS_API, "searches", search_id, "results")
     ## TODO filter for non 0/0 before sending!
