@@ -127,6 +127,13 @@ def _hash(w):
     return h.hexdigest()[:24]
 
 
+def filter_bigsi_results(d):
+    d["result"]["results"] = [
+        x for x in d["result"]["results"] if x["genotype"] != "0/0"
+    ]
+    return d
+
+
 @celery.task()
 def bigsi(query_type, query, user_id, search_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
@@ -139,7 +146,8 @@ def bigsi(query_type, query, user_id, search_id):
     out = results
     query_id = _hash(json.dumps(query))
     url = os.path.join(ATLAS_API, "searches", search_id, "results")
-    send_results(query_type, out, url, request_type="PUT")
+    ## TODO filter for non 0/0 before sending!
+    send_results(query_type, filter_bigsi_results(out), url, request_type="PUT")
 
 
 @app.route("/search", methods=["POST"])
