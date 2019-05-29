@@ -50,7 +50,6 @@ class DistanceTaskManager:
     def _build_xor(self, primary_sample, samples):
         primary_sample_key = self.__genotype_bitarray_key(primary_sample)
         pipe = self.redis.pipeline()
-        print(primary_sample_key, self.redis.bitcount(primary_sample_key))
         for secondary_sample in samples:
             secondary_sample_key = self.__genotype_bitarray_key(secondary_sample)
             k = self.__intermediate_key(primary_sample, secondary_sample)
