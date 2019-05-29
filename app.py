@@ -221,7 +221,7 @@ def distance_task(
         results = DistanceTaskManager().distance(isolate_id, sort=True)
     elif distance_type == "tree-distance":
         results = DistanceTaskManager().distance(
-            isolate_id, samples=TREE_ISOLATES, sort=True
+            isolate_id, samples=TREE_ISOLATES, sort=True, limit=limit
         )
     elif distance_type == "nearest-neighbour":
         results = DistanceTaskManager().distance(
