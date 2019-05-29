@@ -2,7 +2,7 @@ import requests
 import time
 from json import JSONDecodeError
 
-MAX_POLL_COUNT = 30
+MAX_POLL_COUNT = 30 * 10
 POLL_INTERVAL_SECONDS = 1
 
 
