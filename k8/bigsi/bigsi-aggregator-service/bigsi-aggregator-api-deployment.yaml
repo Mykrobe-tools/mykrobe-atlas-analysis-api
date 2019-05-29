@@ -53,7 +53,7 @@ spec:
       - name: mykrobe-atlas-bigsi-aggregator-worker
         image: phelimb/bigsi-aggregator:210419
         command: ["celery"]
-        args: ["-A", "bigsi_aggregator.celery", "worker","--concurrency=1"]
+        args: ["-A", "bigsi_aggregator.celery", "worker","--concurrency=32"]
         envFrom:
           - configMapRef:
               name: mykrobe-atlas-bigsi-aggregator-env                                  

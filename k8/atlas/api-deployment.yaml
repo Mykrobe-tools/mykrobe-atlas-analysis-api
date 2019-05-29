@@ -56,7 +56,7 @@ spec:
       - name: mykrobe-atlas-analysis
         image: phelimb/mykrobe-atlas-analysis-api:c53ab32
         command: ["celery"]
-        args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1",]          
+        args: ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=32",]          
         volumeMounts:
           - mountPath: "/data/"
             name: pv-storage-for-atlas
