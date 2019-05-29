@@ -81,13 +81,14 @@ class DistanceTaskManager:
     def _count_xor(self, primary_sample, samples):
         samples = [s for s in samples if s != primary_sample]
         pipe = self.redis.pipeline()
-        for secondary_sample in (
-            samples
-            and self.redis.sismember(SAMPLES_KEY, primary_sample)
-            and self.redis.sismember(SAMPLES_KEY, secondary_sample)
-        ):
+        for secondary_sample in samples:
             k = self.__distance_result_key(primary_sample, secondary_sample)
-            if secondary_sample != primary_sample and self.redis.exists(k):
+            if (
+                secondary_sample != primary_sample
+                and self.redis.exists(k)
+                and self.redis.sismember(SAMPLES_KEY, primary_sample)
+                and self.redis.sismember(SAMPLES_KEY, secondary_sample)
+            ):
                 pipe.bitcount(
                     self.__distance_result_key(primary_sample, secondary_sample)
                 )
