@@ -207,6 +207,7 @@ def get_tree_isolates():
 TREE_ISOLATES = get_tree_isolates()
 DEFAULT_MAX_NN_DISTANCE = 10000
 DEFAULT_MAX_NN_EXPERIMENTS = 12
+DEFAULT_MAX_NN_EXPERIMENTS_TREE = 100
 
 
 @celery.task()
@@ -216,7 +217,10 @@ def distance_task(
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
-        limit = DEFAULT_MAX_NN_EXPERIMENTS
+        if distance_type == "tree-distance":
+            limit = DEFAULT_MAX_NN_EXPERIMENTS_TREE
+        else:
+            limit = DEFAULT_MAX_NN_EXPERIMENTS
     if distance_type == "all":
         results = DistanceTaskManager().distance(isolate_id, sort=True)
     elif distance_type == "tree-distance":
