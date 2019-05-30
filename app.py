@@ -128,22 +128,21 @@ def _hash(w):
 
 
 def filter_bigsi_results(d):
-    d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
+    d["results"] = [x for x in d.get("results", []) if x["genotype"] != "0/0"]
     return d
 
 
 @celery.task()
 def bigsi(query_type, query, user_id, search_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
-    out = {}
-    results = {
+    out = {
         "sequence": bigsi_tm.seq_query,
         "dna-variant": bigsi_tm.dna_variant_query,
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
-    out = results
     if query_type in ["dna-variant", "protein-variant"]:
         out = filter_bigsi_results(out)
+    print(out)
     query_id = _hash(json.dumps(query))
     url = os.path.join(ATLAS_API, "searches", search_id, "results")
     send_results(query_type, out, url, request_type="PUT")
