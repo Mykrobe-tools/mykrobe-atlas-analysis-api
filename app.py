@@ -140,9 +140,10 @@ def bigsi(query_type, query, user_id, search_id):
         "dna-variant": bigsi_tm.dna_variant_query,
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
+    print(query, out)
     if query_type in ["dna-variant", "protein-variant"]:
         out = filter_bigsi_results(out)
-    print(out)
+    print(query, out)
     query_id = _hash(json.dumps(query))
     url = os.path.join(ATLAS_API, "searches", search_id, "results")
     send_results(query_type, out, url, request_type="PUT")
