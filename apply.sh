@@ -12,10 +12,9 @@ dockerhub \
   --docker-email=readonly@makeandship.com
 
 kubectl apply -k ${DIR}/mykrobe-atlas-api-k8/static-embassy
-kubectl apply -k ${DIR}/mykrobe-atlas-k8/static-embassy
-kubectl apply -k ${DIR}/mykrobe-atlas-analysis-api/k8
+#kubectl apply -k ${DIR}/mykrobe-atlas-k8/static-embassy
+#kubectl apply -k ${DIR}/mykrobe-atlas-analysis-api/k8
 
-############
 # Debug code
 function applyall () {
   local _mfs=( "$@" )
@@ -25,7 +24,6 @@ function applyall () {
   done
 }
 #applyall ${DIR}/mykrobe-atlas-api-k8/static-embassy/*.json
-############
 
 kubectl rollout status deployment.apps/atlas-api-deployment --timeout=60m
 
