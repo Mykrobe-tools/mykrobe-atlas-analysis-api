@@ -1,0 +1,7 @@
+flask
+celery
+requests
+redis
+uwsgi
+bitarray
+
