@@ -1,9 +1,0 @@
-[submodule "mykrobe-atlas-api-k8"]
-	path = mykrobe-atlas-api-k8
-	url = https://github.com/Mykrobe-tools/mykrobe-atlas-api-k8.git
-[submodule "mykrobe-atlas-k8"]
-	path = mykrobe-atlas-k8
-	url = https://github.com/Mykrobe-tools/mykrobe-atlas-k8.git
-[submodule "mykrobe-atlas-analysis-api"]
-	path = mykrobe-atlas-analysis-api
-	url = https://github.com/Mykrobe-tools/mykrobe-atlas-analysis-api.git
