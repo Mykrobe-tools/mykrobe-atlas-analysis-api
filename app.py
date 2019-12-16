@@ -29,6 +29,7 @@ BIGSI_URL = os.environ.get(
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
+
 def make_celery(app):
     celery = Celery(
         app.import_name,
@@ -125,6 +126,7 @@ def _hash(w):
     h = hashlib.md5(w)
     return h.hexdigest()[:24]
 
+
 def filter_bigsi_results(d):
     d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
     return d
@@ -139,13 +141,11 @@ def bigsi(query_type, query, user_id, search_id):
         "dna-variant": bigsi_tm.dna_variant_query,
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
-
     out = results
     query_id = _hash(json.dumps(query))
     url = os.path.join(ATLAS_API, "searches", search_id, "results")
     ## TODO filter for non 0/0 before sending!
     send_results(query_type, filter_bigsi_results(out), url, request_type="PUT")
-
 
 
 @app.route("/search", methods=["POST"])
@@ -204,7 +204,6 @@ def get_tree_isolates():
 
 
 TREE_ISOLATES = get_tree_isolates()
-
 DEFAULT_MAX_NN_DISTANCE = 10000
 DEFAULT_MAX_NN_EXPERIMENTS = 12
 

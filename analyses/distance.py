@@ -7,10 +7,7 @@ import json
 import redis
 import operator
 from collections import OrderedDict
-<<<<<<< HEAD
 import bitarray
-=======
->>>>>>> release/dev
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))

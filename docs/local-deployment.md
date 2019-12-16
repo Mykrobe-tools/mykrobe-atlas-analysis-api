@@ -87,6 +87,7 @@ curl mykrobe-atlas-bigsi-aggregator-api-service/api/v1/variant_searches/f07f794e
 curl -X POST  -H "Content-Type: application/json"  -d '{"reference":"/data/NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"/data/NC_000962.3.gb", "gene":"rpoB"}' mykrobe-atlas-bigsi-aggregator-api-service/api/v1/variant_searches/
 
 curl mykrobe-atlas-bigsi-aggregator-api-service/api/v1/variant_searches/0602c248018836fb157cdeef
+
 ```
 
 ## Test queries 
