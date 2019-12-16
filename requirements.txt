@@ -4,4 +4,3 @@ requests
 redis
 uwsgi
 bitarray
-

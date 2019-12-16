@@ -71,6 +71,3 @@ spec:
   - port: 80
   selector:
     app: mykrobe-atlas-bigsi
-
-
-

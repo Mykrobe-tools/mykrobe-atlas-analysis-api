@@ -71,5 +71,3 @@ spec:
     targetPort: 80     
   selector:
     app: mykrobe-atlas-bigsi-aggregator-api
-
-

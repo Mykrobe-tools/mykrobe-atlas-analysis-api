@@ -1,0 +1,64 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-analysis-api",
+		"labels": {
+			"app": "mykrobe-atlas-analysis-api"
+		},
+    	"namespace": "mykrobe"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-analysis-api"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-analysis-api"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "pv-storage-for-atlas",
+						"persistentVolumeClaim": {
+							"claimName": "pv-claim-for-atlas"
+						}
+					}
+				],
+				"imagePullSecrets": [{
+        			"name": "private-registry-key"
+        		}],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-analysis",
+						"image": "phelimb/mykrobe-atlas-analysis-api:768a5f6",
+						"command": ["/bin/sh"],
+        				"args": ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi:app"],
+						"ports": [
+							{
+								"containerPort": 80
+							}
+						],
+						"volumeMounts": [
+							{
+								"mountPath": "/data/",
+								"name": "pv-storage-for-atlas"
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "env"
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}
