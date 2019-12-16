@@ -32,6 +32,8 @@ class PredictorTaskManager:
                 "atlas",
                 "-1",
                 file,
+                "--format",
+                "json",
                 "--output",
                 outfile,
             ]

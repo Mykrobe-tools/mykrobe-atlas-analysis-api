@@ -25,6 +25,10 @@ spec:
       labels:
         app: redis  # has to match .spec.selector.matchLabels
     spec:
+      volumes:
+        - name: pv-storage-for-atlas
+          persistentVolumeClaim:
+           claimName: pv-claim-for-atlas
       containers:
         - name: redis
           image: redis:4.0
@@ -32,3 +36,6 @@ spec:
           ports:
             - containerPort: 6379
               name: redis
+          volumeMounts:
+            - mountPath: "/data/"
+              name: pv-storage-for-atlas

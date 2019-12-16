@@ -1,0 +1,14 @@
+resources:
+  - redis-deployment.yaml
+  - atlas-analysis-api-ingress.json
+  - atlas/api-deployment.yaml
+  - atlas/persistent-volume-claim.yaml
+  - atlas/env.yaml
+  - atlas/persistent-volume.yaml
+  - bigsi/bigsi-aggregator-service/bigsi-aggregator-api-deployment.yaml
+  - bigsi/bigsi-aggregator-service/bigsi-ingress.yaml
+  - bigsi/bigsi-service/bigsi-deployment.yaml
+  - bigsi/bigsi-service/pv-claim.yaml
+  - bigsi/bigsi-service/pv-volume.yaml
+  #- reserved_prod/atlas/env.yaml
+
