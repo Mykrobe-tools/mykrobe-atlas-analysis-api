@@ -1,0 +1,56 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-analysis-worker",
+		"labels": {
+			"app": "mykrobe-atlas-analysis-worker"
+		},
+    	"namespace": "default"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-analysis-worker"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-analysis-worker"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "analysis-data",
+						"persistentVolumeClaim": {
+							"claimName": "analysis-data"
+						}
+					}
+				],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-analysis",
+						"image": "phelimb/mykrobe-atlas-analysis-api:768a5f6",
+						"command": ["celery"],
+        				"args": ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1"],
+        				"volumeMounts": [
+							{
+								"mountPath": "/data/",
+								"name": "analysis-data"
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "atlas-analysis-api-env"
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}
