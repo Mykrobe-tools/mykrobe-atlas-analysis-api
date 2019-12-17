@@ -10,7 +10,7 @@
         "TB_GENBANK_PATH": "data/NC_000962.3.gb",
         "TB_TREE_PATH_V1": "data/tb_newick.txt",
         "REDIS_HOST": "redis",
-        "REDIS_POST": "6379"
+        "REDIS_PORT": "6379"
     },
     "kind": "ConfigMap",
     "metadata": {
