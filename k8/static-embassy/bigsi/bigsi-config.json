@@ -1,0 +1,11 @@
+{
+    "apiVersion": "v1",
+    "data": {
+        "config.yaml": "\nh: 1\nk: 31\nm: 28000000\nnproc: 1\nstorage-engine: berkeleydb\nstorage-config:\n\tfilename: /data/test-bigsi-bdb\n\tflag: \"c\"\n"
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+        "name": "mykrobe-atlas-bigsi-config",
+        "namespace": "default"
+    }
+}

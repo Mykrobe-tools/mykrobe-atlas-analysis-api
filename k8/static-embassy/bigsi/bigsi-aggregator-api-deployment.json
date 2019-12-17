@@ -1,0 +1,48 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-bigsi-aggregator-api-deployment",
+		"labels": {
+			"app": "mykrobe-atlas-bigsi-aggregator-api",
+			"tier": "front"
+		},
+    	"namespace": "default"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-bigsi-aggregator-api"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-bigsi-aggregator-api"
+				}
+			},
+			"spec": {
+				"containers": [
+					{
+						"name": "mykrobe-atlas-bigsi-aggregator",
+						"image": "phelimb/bigsi-aggregator:210419",
+						"command": ["/bin/sh"],
+						"args": ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi"],
+						"ports": [
+							{
+								"containerPort": 80
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "bigsi-aggregator-env"
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}

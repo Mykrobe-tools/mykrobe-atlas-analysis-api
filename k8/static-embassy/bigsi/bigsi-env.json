@@ -1,0 +1,11 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+  	"name": "bigsi-env",
+    "namespace": "default"
+  },
+  "data": {
+  	"BIGSI_CONFIG": "/etc/bigsi/conf/config.yaml"
+  }
+}
