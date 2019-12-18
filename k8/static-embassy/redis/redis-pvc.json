@@ -6,7 +6,7 @@
     "namespace": "default"
   },
   "spec": {
-    "accessModes": ["ReadWriteOnce"],
+    "accessModes": ["ReadWriteMany"],
     "resources": {
       "requests": {
         "storage": "32Gi"

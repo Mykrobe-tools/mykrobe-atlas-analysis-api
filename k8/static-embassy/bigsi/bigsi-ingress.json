@@ -11,13 +11,13 @@
   },
   "spec": {
     "backend": {
-      "serviceName": "bigsi-aggregator-api-service",
+      "serviceName": "mykrobe-atlas-bigsi-aggregator-api-service",
       "servicePort": 80
     },
     "tls": [
       {
         "hosts": [
-          "api-dev.mykro.be"
+          "bigsi-dev.mykro.be"
         ],
         "secretName": "bigsi-dev-mykro-be-tls"
       }
@@ -29,7 +29,7 @@
           "paths": [
             {
               "backend": {
-                "serviceName": "bigsi-aggregator-api-service",
+                "serviceName": "mykrobe-atlas-bigsi-aggregator-api-service",
                 "servicePort": 80
               }
             }
