@@ -23,9 +23,9 @@
 			"spec": {
 				"volumes": [
 					{
-						"name": "analysis-data",
+						"name": "uploads-data",
 						"persistentVolumeClaim": {
-							"claimName": "analysis-data"
+							"claimName": "uploads-data"
 						}
 					}
 				],
@@ -38,7 +38,7 @@
         				"volumeMounts": [
 							{
 								"mountPath": "/data/",
-								"name": "analysis-data"
+								"name": "uploads-data"
 							}
 						],
 						"envFrom": [

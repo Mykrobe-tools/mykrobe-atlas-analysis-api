@@ -1,0 +1,43 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-bigsi-aggregator-worker",
+		"labels": {
+			"app": "mykrobe-atlas-bigsi-aggregator-worker",
+			"tier": "front"
+		},
+    	"namespace": "default"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-bigsi-aggregator-worker"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-bigsi-aggregator-worker"
+				}
+			},
+			"spec": {
+				"containers": [
+					{
+						"name": "mykrobe-atlas-bigsi-aggregator-worker",
+						"image": "phelimb/bigsi-aggregator:080419",
+						"command": ["celery"],
+        				"args": ["-A", "bigsi_aggregator.celery", "worker","--concurrency=1"],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "bigsi-aggregator-env"
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}
