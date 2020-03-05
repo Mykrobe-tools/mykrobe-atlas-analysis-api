@@ -35,7 +35,7 @@
 				"containers": [
 					{
 						"name": "mykrobe-atlas-analysis",
-						"image": "phelimb/mykrobe-atlas-analysis-api:113af42",
+						"image": "phelimb/mykrobe-atlas-analysis-api:768a5f6",
 						"command": ["/bin/sh"],
         				"args": ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi:app"],
 						"ports": [

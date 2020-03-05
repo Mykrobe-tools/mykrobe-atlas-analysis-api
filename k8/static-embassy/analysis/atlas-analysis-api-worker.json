@@ -32,9 +32,9 @@
 				"containers": [
 					{
 						"name": "mykrobe-atlas-analysis",
-						"image": "phelimb/mykrobe-atlas-analysis-api:768a5f6",
+						"image": "phelimb/mykrobe-atlas-analysis-api:113af42",
 						"command": ["celery"],
-        				"args": ["-A", "app.celery", "worker", "-O", "fair" ,"-l","info","--concurrency=1"],
+        				"args": ["-A", "app.celery", "worker", "-O", "fair" ,"-l", "debug","--concurrency=1"],
         				"volumeMounts": [
 							{
 								"mountPath": "/data/",
