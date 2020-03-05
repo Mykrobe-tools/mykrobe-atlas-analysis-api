@@ -2,7 +2,7 @@
     "apiVersion": "v1",
     "data": {
         "ATLAS_API": "https://api-dev.mykro.be",
-        "BIGSI_URL": "mykrobe-atlas-bigsi-aggregator-api-service/api/v1/",
+        "BIGSI_URL": "http://mykrobe-atlas-bigsi-aggregator-api-service/api/v1",
         "CELERY_BROKER_URL": "redis://redis:6379",
         "DEFAULT_OUTDIR": "/data/out/",
         "FLASK_DEBUG": "1",

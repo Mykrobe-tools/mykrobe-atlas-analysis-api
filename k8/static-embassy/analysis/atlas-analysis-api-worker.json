@@ -47,6 +47,12 @@
 									"name": "atlas-analysis-api-env"
 								}
 							}
+						],
+						"env": [
+							{
+								"name": "CONFIG_HASH_MD5",
+								"value": "0960112ac0a45b542a3c77aea5f2ceb4"
+							}
 						]
 					}
 				]
