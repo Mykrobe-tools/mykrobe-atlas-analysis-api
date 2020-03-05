@@ -39,6 +39,12 @@
 									"name": "bigsi-aggregator-env"
 								}
 							}
+						],
+						"env": [
+							{
+								"name": "CONFIG_HASH_MD5",
+								"value": "8240ad548481b94901c8052723816e27"
+							}
 						]
 					}
 				]
