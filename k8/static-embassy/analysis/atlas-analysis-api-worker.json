@@ -1,0 +1,62 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-analysis-worker",
+		"labels": {
+			"app": "mykrobe-atlas-analysis-worker"
+		},
+    	"namespace": "default"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-analysis-worker"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-analysis-worker"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "uploads-data",
+						"persistentVolumeClaim": {
+							"claimName": "uploads-data"
+						}
+					}
+				],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-analysis",
+						"image": "phelimb/mykrobe-atlas-analysis-api:113af42",
+						"command": ["celery"],
+        				"args": ["-A", "app.celery", "worker", "-O", "fair" ,"-l", "debug","--concurrency=1"],
+        				"volumeMounts": [
+							{
+								"mountPath": "/data/",
+								"name": "uploads-data"
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "atlas-analysis-api-env"
+								}
+							}
+						],
+						"env": [
+							{
+								"name": "CONFIG_HASH_MD5",
+								"value": "0960112ac0a45b542a3c77aea5f2ceb4"
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}
