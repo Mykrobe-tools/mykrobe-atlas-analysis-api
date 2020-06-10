@@ -4,4 +4,4 @@ requests
 redis
 uwsgi
 bitarray
-
+hypothesis
