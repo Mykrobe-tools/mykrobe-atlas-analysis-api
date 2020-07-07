@@ -215,13 +215,13 @@ def distance_task(experiment_id, distance_type, max_distance=None, limit=None):
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
     if distance_type == "all":
-        results = DistanceTaskManager().distance(experiment_id, sort=True)
-    elif distance_type == "tree-distance":
-        results = DistanceTaskManager().distance(
-            experiment_id, samples=TREE_ISOLATES, sort=True
+        results = DistanceTaskManager.get_all(
+            experiment_id, max_distance=max_distance, limit=limit, sort=True
         )
+    elif distance_type == "tree-distance":
+        results = DistanceTaskManager.get_nearest_leaf(experiment_id)
     elif distance_type == "nearest-neighbour":
-        results = DistanceTaskManager().distance(
+        results = DistanceTaskManager.get_nearest_neighbours(
             experiment_id, max_distance=max_distance, limit=limit, sort=True
         )
     else:

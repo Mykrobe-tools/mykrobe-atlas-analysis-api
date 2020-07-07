@@ -10,6 +10,8 @@ WORKDIR /usr/src/app/mykrobe-predictor
 RUN wget -O mykrobe-data.tar.gz https://bit.ly/2H9HKTU && tar -zxvf mykrobe-data.tar.gz && rm -fr src/mykrobe/data && mv mykrobe-data src/mykrobe/data
 RUN pip install .
 
+RUN pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
+
 COPY requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r /usr/src/app/requirements.txt
 
