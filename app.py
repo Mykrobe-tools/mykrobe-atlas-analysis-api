@@ -97,11 +97,6 @@ def genotype_task(file, experiment_id):
     results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, experiment_id)
     url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
     # send_results("genotype", results, url)
-    ## Insert distance results
-    DistanceTaskManager().insert(results)
-    # ## Trigger distance tasks
-    res = distance_task.delay(experiment_id, "tree-distance")
-    res = distance_task.delay(experiment_id, "nearest-neighbour")
 
 
 @app.route("/analyses", methods=["POST"])
