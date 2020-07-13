@@ -5,10 +5,10 @@ WORKDIR /usr/src/app
 RUN pip install --upgrade pip
 
 ## Install Mykrobe atlas cli
-RUN git clone --branch v0.7.0 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
+RUN git clone --branch v0.8.2 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
 WORKDIR /usr/src/app/mykrobe-predictor
 RUN wget -O mykrobe-data.tar.gz https://bit.ly/2H9HKTU && tar -zxvf mykrobe-data.tar.gz && rm -fr src/mykrobe/data && mv mykrobe-data src/mykrobe/data
-RUN pip install .
+RUN pip install requests && pip install .
 
 RUN pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
 
