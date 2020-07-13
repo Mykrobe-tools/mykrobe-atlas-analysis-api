@@ -10,6 +10,7 @@ WORKDIR /usr/src/app/mykrobe-predictor
 RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make && cd ..
 RUN wget -O mykrobe-data.tar.gz https://bit.ly/2H9HKTU && tar -zxvf mykrobe-data.tar.gz && rm -fr src/mykrobe/data && mv mykrobe-data src/mykrobe/data
 RUN pip install requests && pip install .
+RUN ln -sf mccortex/bin/mccortex31 /usr/local/lib/python3.6/site-packages/mykrobe/cortex/mccortex31
 
 RUN pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
 
