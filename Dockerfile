@@ -1,7 +1,8 @@
 FROM quay.io/biocontainers/mykrobe:0.8.2--py36h7e4d88f_0
-FROM python:3.6
+RUN pip install --upgrade pip
 
-RUN pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
+RUN wget -O mykrobe-atlas-distance-client.zip https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client/archive/master.zip
+RUN unzip mykrobe-atlas-distance-client.zip && cd mykrobe-atlas-distance-client-master && python setup.py install && cd ..
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
