@@ -28,8 +28,6 @@ class PredictorTaskManager:
                 "predict",
                 sample_id,
                 "tb",
-                "--panel",
-                "atlas",
                 "-1",
                 file,
                 "--format",
