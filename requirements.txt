@@ -1,4 +1,5 @@
 flask
+Bio
 celery
 requests
 redis
