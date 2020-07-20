@@ -1,13 +1,18 @@
 FROM python:3.6
+RUN apt-get update -y && apt-get install -y libssl-dev libffi-dev dnsutils
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
 RUN pip install --upgrade pip
 
-COPY --from=quay.io/biocontainers/mykrobe:0.8.2--py36h7e4d88f_0 /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
-COPY --from=quay.io/biocontainers/mykrobe:0.8.2--py36h7e4d88f_0 /usr/local/bin/mykrobe /usr/local/bin/mykrobe
+## Install Mykrobe atlas cli
+RUN git clone --branch v0.8.2 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
+WORKDIR /usr/src/app/mykrobe-predictor
+RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make && cd ..
+RUN pip install requests && python setup.py install
+RUN ln -sf /usr/src/app/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/lib/python3.6/site-packages/mykrobe/cortex/mccortex31
 
 RUN pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
 COPY requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r /usr/src/app/requirements.txt
 
