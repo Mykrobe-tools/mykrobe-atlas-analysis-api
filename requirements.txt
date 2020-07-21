@@ -6,3 +6,4 @@ redis
 uwsgi
 bitarray
 hypothesis
+git+git://github.com/Mykrobe-tools/mykrobe-atlas-distance-client

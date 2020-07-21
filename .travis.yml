@@ -7,7 +7,6 @@ dist: bionic
 
 install:
   - pip install -r requirements.txt
-  - pip install git+https://github.com/Mykrobe-tools/mykrobe-atlas-distance-client.git
 
 script:
   - python3 -m pytest tests/
