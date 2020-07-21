@@ -10,7 +10,8 @@ NUM_API_CLIENT_THREADS = 10
 configuration = Configuration()
 configuration.host = os.environ.get("ATLAS_DISTANCE_API", "http://0.0.0.0:8080/api/v1")
 api_client = distance_client.ApiClient(configuration=configuration, pool_threads=NUM_API_CLIENT_THREADS)
-api_instance = distance_client.DistanceApi(api_client)
+neighbours_get_api_instance = distance_client.NeighboursGetApi(api_client)
+leaf_get_api_instance = distance_client.LeafGetApi(api_client)
 
 
 def _sort_and_filter_distance_results(results, max_distance, limit):
@@ -32,7 +33,7 @@ class DistanceTaskManager:
     @classmethod
     def get_nearest_leaf(cls, experiment_id):
         try:
-            results = api_instance.samples_id_nearest_leaf_node_get(experiment_id)
+            results = leaf_get_api_instance.samples_id_nearest_leaf_node_get(experiment_id)
         except ApiException:
             results = []
         return OrderedDict({r.leaf_id: r.distance for r in results})
@@ -44,7 +45,7 @@ class DistanceTaskManager:
         if limit is not None:
             sort = True
         try:
-            results = api_instance.samples_id_nearest_neighbours_get(experiment_id)
+            results = neighbours_get_api_instance.samples_id_nearest_neighbours_get(experiment_id)
         except ApiException:
             results = []
         if sort:
