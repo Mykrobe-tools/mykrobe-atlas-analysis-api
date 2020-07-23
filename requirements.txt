@@ -5,5 +5,4 @@ requests
 redis
 uwsgi
 bitarray
-hypothesis
 git+git://github.com/Mykrobe-tools/mykrobe-atlas-distance-client@b0c926f3d54b5f6f046acf7bd9a3bf27511479c0
