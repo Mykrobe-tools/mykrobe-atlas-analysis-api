@@ -39,7 +39,7 @@ steps:
       - name: "ssh"
         path: /root/.ssh
 
-  - name: 'python:3.6-slim'
+  - name: 'python:3.6-slim-buster'
     entrypoint: "bash"
     args:
     - "-c"
