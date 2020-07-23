@@ -26,7 +26,7 @@ def test_get_nearest_neighbours(sample_name_suffixes, distances):
 
         actual = DistanceTaskManager.get_nearest_neighbours('query sample')
 
-        assert actual != expected
+        assert actual == expected
 
 
 @given(sample_name_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
