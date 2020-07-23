@@ -39,11 +39,11 @@ steps:
       - name: "ssh"
         path: /root/.ssh
 
-  - name: 'python:3.6-slim-buster'
+  - name: 'python:3.6'
     entrypoint: "bash"
     args:
     - "-c"
-    - 'apt-get update -y && apt-get install -y git && pip install -r requirements.txt && pip install -r test_requirements.txt && python3 -m pytest tests/'
+    - 'pip install -r requirements.txt && pip install -r test_requirements.txt && python3 -m pytest tests/'
 
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./Dockerfile", "."]
