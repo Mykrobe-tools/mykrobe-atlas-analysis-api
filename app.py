@@ -82,7 +82,13 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
         r = requests.post(url, json=d)
 
 
-## Predictor
+## Analysis
+
+
+@celery.task()
+def bigsi_build_task(file, experiment_id):
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR)
+    bigsi_tm.build_bigsi(file, experiment_id)
 
 
 @celery.task()
@@ -100,10 +106,11 @@ def genotype_task(file, experiment_id):
 
 
 @app.route("/analyses", methods=["POST"])
-def predictor():
+def analyse_new_sample():
     data = request.get_json()
     file = data.get("file", "")
     experiment_id = data.get("experiment_id", "")
+    res = bigsi_build_task.delay(file, experiment_id)
     res = predictor_task.delay(file, experiment_id)
     res = genotype_task.delay(file, experiment_id)
     MAPPER.create_mapping(experiment_id, experiment_id)
@@ -128,7 +135,7 @@ def filter_bigsi_results(d):
 
 
 @celery.task()
-def bigsi(query_type, query, user_id, search_id):
+def bigsi_query_task(query_type, query, user_id, search_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
@@ -150,7 +157,7 @@ def search():
     query = data.get("query", "")
     user_id = data.get("user_id", "")
     search_id = data.get("search_id", "")
-    res = bigsi.delay(t, query, user_id, search_id)
+    res = bigsi_query_task.delay(t, query, user_id, search_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 

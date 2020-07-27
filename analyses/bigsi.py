@@ -1,16 +1,18 @@
 import requests
 import time
-from json import JSONDecodeError
+import subprocess
+import os
 
 MAX_POLL_COUNT = 30
 POLL_INTERVAL_SECONDS = 1
 
 
 class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath):
+    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir=""):
         self.bigsi_api_url = bigsi_api_url
         self.reference_filepath = reference_filepath
         self.genbank_filepath = genbank_filepath
+        self.outdir = outdir
 
     @property
     def sequence_search_url(self):
@@ -77,3 +79,35 @@ class BigsiTaskManager:
         query["genbank"] = self.genbank_filepath
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'
         return self._query(query, search_url)
+
+    def build_bigsi(self, file, sample_id):
+        uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
+        cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
+        out = subprocess.check_output(
+            [
+                "mccortex31",
+                "build",
+                "-f",
+                "-k",
+                str(31),
+                "-s",
+                sample_id,
+                "--fq-cutoff",
+                str(5),
+                "-1",
+                file,
+                uncleaned_ctx,
+            ]
+        )
+        out = subprocess.check_output(
+            [
+                "mccortex31",
+                "clean",
+                "--fallback",
+                str(5),
+                "--out",
+                cleaned_ctx,
+                uncleaned_ctx,
+            ]
+        )
+

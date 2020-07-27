@@ -19,9 +19,6 @@ class PredictorTaskManager:
 
     def run_predictor(self, file, sample_id):
         outfile = self.predictor_filepath(sample_id)
-        cmd = "mykrobe predict --keep_tmp {sample_id} tb -1 {file} --output {sample_id}.json".format(
-            sample_id=sample_id, file=file
-        )
         out = subprocess.check_output(
             [
                 "mykrobe",
