@@ -83,8 +83,6 @@ class BigsiTaskManager:
     def build_bigsi(self, file, sample_id):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        bloom_file = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
-        bigsi_config = os.environ.get("BIGSI_CONFIG", "/config/bigsi.config")
         out = subprocess.check_output(
             [
                 "mccortex31",
@@ -110,16 +108,6 @@ class BigsiTaskManager:
                 "--out",
                 cleaned_ctx,
                 uncleaned_ctx,
-            ]
-        )
-        out = subprocess.check_output(
-            [
-                "bigsi",
-                "bloom",
-                "-c",
-                bigsi_config,
-                cleaned_ctx,
-                bloom_file,
             ]
         )
 
