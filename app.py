@@ -123,7 +123,7 @@ def _hash(w):
 
 
 def filter_bigsi_results(d):
-    d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
+    # d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
     return d
 
 
