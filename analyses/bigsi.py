@@ -130,11 +130,12 @@ class BigsiTaskManager:
         try:
             out = requests.post(self.bloom_url, data=bloom_query)
         except requests.exceptions.ConnectionError as e:
-            logging.log(level=logging.DEBUG, msg=json.dumps(e))
+            logging.log(level=logging.DEBUG, msg=str(e))
         insert_query = {
             "bloomfilter": bloom,
             "sample": sample_id,
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
         out = requests.post(self.insert_url, data=insert_query)
+        logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
