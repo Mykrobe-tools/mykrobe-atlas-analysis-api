@@ -109,7 +109,7 @@ class BigsiTaskManager:
                 file,
                 uncleaned_ctx,
             ]
-        logging.log(msg="Running: "+" ".join(build_ctx_cmd))
+        logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))
         out = subprocess.check_output(build_ctx_cmd)
         clean_ctx_cmd = [
                 "mccortex31",
@@ -120,21 +120,21 @@ class BigsiTaskManager:
                 cleaned_ctx,
                 uncleaned_ctx,
             ]
-        logging.log(msg="Running: {}".format(" ".join(clean_ctx_cmd)))
+        logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
         bloom_query = {
             "ctx": cleaned_ctx,
             "outfile": bloom,
         }
-        logging.log(msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         try:
             out = requests.post(self.bloom_url, data=bloom_query)
         except requests.exceptions.ConnectionError as e:
-            logging.log(msg=json.dumps(e))
+            logging.log(level=logging.DEBUG, msg=json.dumps(e))
         insert_query = {
             "bloomfilter": bloom,
             "sample": sample_id,
         }
-        logging.log(msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
         out = requests.post(self.insert_url, data=insert_query)
 
