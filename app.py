@@ -23,9 +23,8 @@ DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
 ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
-BIGSI_URL = os.environ.get(
-    "BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1"
-)
+BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
+BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
@@ -87,7 +86,7 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 @celery.task()
 def bigsi_build_task(file, experiment_id):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR)
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL)
     bigsi_tm.build_bigsi(file, experiment_id)
 
 

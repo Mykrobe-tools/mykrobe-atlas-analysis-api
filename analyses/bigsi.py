@@ -1,5 +1,6 @@
 import requests
 import time
+import json
 import subprocess
 import os
 
@@ -8,8 +9,9 @@ POLL_INTERVAL_SECONDS = 1
 
 
 class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir=""):
+    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url=""):
         self.bigsi_api_url = bigsi_api_url
+        self.bigsi_build_url = bigsi_build_url
         self.reference_filepath = reference_filepath
         self.genbank_filepath = genbank_filepath
         self.outdir = outdir
@@ -25,6 +27,14 @@ class BigsiTaskManager:
     @property
     def prot_variant_search_url(self):
         return "/".join([self.bigsi_api_url, "variant_searches/"])
+
+    @property
+    def bloom_url(self):
+        return "/".join([self.bigsi_build_url, "bloom"])
+
+    @property
+    def insert_url(self):
+        return "/".join([self.bigsi_build_url, "insert"])
 
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
@@ -83,8 +93,8 @@ class BigsiTaskManager:
     def build_bigsi(self, file, sample_id):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        out = subprocess.check_output(
-            [
+        bloom = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
+        build_ctx_cmd = [
                 "mccortex31",
                 "build",
                 "-f",
@@ -98,9 +108,9 @@ class BigsiTaskManager:
                 file,
                 uncleaned_ctx,
             ]
-        )
-        out = subprocess.check_output(
-            [
+        print("Running: ", " ".join(build_ctx_cmd))
+        out = subprocess.check_output(build_ctx_cmd)
+        clean_ctx_cmd = [
                 "mccortex31",
                 "clean",
                 "--fallback",
@@ -109,5 +119,18 @@ class BigsiTaskManager:
                 cleaned_ctx,
                 uncleaned_ctx,
             ]
-        )
+        print("Running: ", " ".join(clean_ctx_cmd))
+        out = subprocess.check_output(clean_ctx_cmd)
+        bloom_query = {
+            "ctx": cleaned_ctx,
+            "outfile": bloom,
+        }
+        print("POSTing to ", self.bloom_url, " with ", json.dump(bloom_query))
+        out = requests.post(self.bloom_url, data=bloom_query)
+        insert_query = {
+            "bloomfilter": bloom,
+            "sample": sample_id,
+        }
+        print("POSTing to ", self.insert_url, " with ", json.dump(insert_query))
+        out = requests.post(self.insert_url, data=insert_query)
 
