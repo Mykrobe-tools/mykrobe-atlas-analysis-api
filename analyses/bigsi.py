@@ -3,6 +3,7 @@ import time
 import json
 import subprocess
 import os
+import logging
 
 MAX_POLL_COUNT = 30
 POLL_INTERVAL_SECONDS = 1
@@ -108,7 +109,7 @@ class BigsiTaskManager:
                 file,
                 uncleaned_ctx,
             ]
-        print("Running: ", " ".join(build_ctx_cmd))
+        logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))
         out = subprocess.check_output(build_ctx_cmd)
         clean_ctx_cmd = [
                 "mccortex31",
@@ -119,18 +120,18 @@ class BigsiTaskManager:
                 cleaned_ctx,
                 uncleaned_ctx,
             ]
-        print("Running: ", " ".join(clean_ctx_cmd))
+        logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
         bloom_query = {
             "ctx": cleaned_ctx,
             "outfile": bloom,
         }
-        print("POSTing to ", self.bloom_url, " with ", json.dump(bloom_query))
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         out = requests.post(self.bloom_url, data=bloom_query)
         insert_query = {
             "bloomfilter": bloom,
             "sample": sample_id,
         }
-        print("POSTing to ", self.insert_url, " with ", json.dump(insert_query))
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
         out = requests.post(self.insert_url, data=insert_query)
 
