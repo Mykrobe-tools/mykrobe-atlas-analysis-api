@@ -95,6 +95,7 @@ class BigsiTaskManager:
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
         bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
+        bloom_file_path = os.path.join(self.outdir, "{sample_id}/{sample_id}".format(sample_id=sample_id))
         build_ctx_cmd = [
                 "mccortex31",
                 "build",
@@ -131,6 +132,12 @@ class BigsiTaskManager:
             out = requests.post(self.bloom_url, data=bloom_query)
         except requests.exceptions.ConnectionError as e:
             logging.log(level=logging.DEBUG, msg=str(e))
+        wait_time = 1
+        max_wait_time = 600
+        while not os.path.exists(bloom_file_path) and wait_time < max_wait_time:
+            logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds".format(wait_time))
+            time.sleep(wait_time)
+            wait_time = wait_time * 2
         insert_query = {
             "config": "/etc/bigsi/conf/config.yaml",
             "bloomfilter": bloom,
