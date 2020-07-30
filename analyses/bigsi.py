@@ -132,6 +132,7 @@ class BigsiTaskManager:
         except requests.exceptions.ConnectionError as e:
             logging.log(level=logging.DEBUG, msg=str(e))
         insert_query = {
+            "config": "/etc/bigsi/conf/config.yaml",
             "bloomfilter": bloom,
             "sample": sample_id,
         }
