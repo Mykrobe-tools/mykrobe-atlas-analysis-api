@@ -94,7 +94,8 @@ class BigsiTaskManager:
     def build_bigsi(self, file, sample_id):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
+        bloom_dir = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
+        bloom_file = os.path.join(self.outdir, "{sample_id}/{sample_id}".format(sample_id=sample_id))
         build_ctx_cmd = [
                 "mccortex31",
                 "build",
@@ -124,7 +125,7 @@ class BigsiTaskManager:
         out = subprocess.check_output(clean_ctx_cmd)
         bloom_query = {
             "ctx": cleaned_ctx,
-            "outfile": bloom,
+            "outfile": bloom_dir,
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         try:
@@ -132,10 +133,9 @@ class BigsiTaskManager:
         except requests.exceptions.ConnectionError as e:
             logging.log(level=logging.DEBUG, msg=str(e))
         insert_query = {
-            "bloomfilter": bloom,
+            "bloomfilter": bloom_file,
             "sample": sample_id,
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
         out = requests.post(self.insert_url, data=insert_query)
-        logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
