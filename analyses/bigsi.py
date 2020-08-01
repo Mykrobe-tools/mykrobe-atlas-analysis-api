@@ -177,7 +177,7 @@ class BigsiTaskManager:
             time.sleep(wait_time)
             wait_time = wait_time * 2
         wait_time = 10
-        while os.path.getmtime(file_path) + 10 > time.time():
+        while os.path.getmtime(file_path) + 100 > time.time():
             logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
 
