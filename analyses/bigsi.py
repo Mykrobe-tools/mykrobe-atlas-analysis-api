@@ -168,10 +168,12 @@ class BigsiTaskManager:
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
-    def _wait_until_available(self, file_path, max_wait_time=600):
+    def _wait_until_available(self, file_path, max_wait_time=4096):
         # temporary hack, due to slow disk, the file may take some time to appear
         wait_time = 1
-        while not os.path.exists(file_path) and wait_time < max_wait_time:
+        while not os.path.exists(file_path) and \
+                os.path.getmtime(file_path) + 10 < time.time() and \
+                wait_time <= max_wait_time:
             logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
             wait_time = wait_time * 2
