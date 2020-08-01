@@ -10,9 +10,10 @@ POLL_INTERVAL_SECONDS = 1
 
 
 class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url=""):
+    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="", bigsi_build_config=""):
         self.bigsi_api_url = bigsi_api_url
         self.bigsi_build_url = bigsi_build_url
+        self.bigsi_build_config = bigsi_build_config
         self.reference_filepath = reference_filepath
         self.genbank_filepath = genbank_filepath
         self.outdir = outdir
@@ -34,8 +35,12 @@ class BigsiTaskManager:
         return "/".join([self.bigsi_build_url, "bloom"])
 
     @property
-    def insert_url(self):
-        return "/".join([self.bigsi_build_url, "insert"])
+    def build_url(self):
+        return "/".join([self.bigsi_build_url, "build"])
+
+    @property
+    def merge_url(self):
+        return "/".join([self.bigsi_build_url, "merge"])
 
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
@@ -96,6 +101,9 @@ class BigsiTaskManager:
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
         bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
         bloom_file_path = os.path.join(self.outdir, "{sample_id}/{sample_id}".format(sample_id=sample_id))
+        bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
+        bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
+
         build_ctx_cmd = [
                 "mccortex31",
                 "build",
@@ -112,6 +120,7 @@ class BigsiTaskManager:
             ]
         logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))
         out = subprocess.check_output(build_ctx_cmd)
+
         clean_ctx_cmd = [
                 "mccortex31",
                 "clean",
@@ -123,27 +132,48 @@ class BigsiTaskManager:
             ]
         logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
+
         bloom_query = {
             "ctx": cleaned_ctx,
             "outfile": bloom,
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
-        try:
-            out = requests.post(self.bloom_url, data=bloom_query)
-        except requests.exceptions.ConnectionError as e:
-            logging.log(level=logging.DEBUG, msg=str(e))
+        out = requests.post(self.bloom_url, data=bloom_query)
+        self._wait_until_available(bloom_file_path)
+
+        with open(bigsi_config_path, "w") as conf:
+            conf.write("h: 1\n")
+            conf.write("k: 31\n")
+            conf.write("m: 28000000\n")
+            conf.write("nproc: 1\n")
+            conf.write("storage-engine: berkeleydb\n")
+            conf.write("storage-config:\n")
+            conf.write("  filename: {}\n".format(bigsi_db_path))
+            conf.write("  flag: \"c\"")
+        self._wait_until_available(bigsi_config_path)
+        build_query = {
+            "bloomfilters": [ bloom_file_path ],
+            "samples": [ sample_id ],
+            "config": bigsi_config_path
+        }
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.build_url, json.dumps(build_query)))
+        out = requests.post(self.build_url, data=build_query)
+        self._wait_until_available(bigsi_db_path)
+
+        merge_query = {
+            "config": self.bigsi_build_config,
+            "merge_config": bigsi_config_path
+        }
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
+        out = requests.post(self.merge_url, data=merge_query)
+
+        logging.log(level=logging.DEBUG, msg="build_bigsi complete")
+
+    def _wait_until_available(self, file_path, max_wait_time=600):
+        # temporary hack, due to slow disk, the file may take some time to appear
         wait_time = 1
-        max_wait_time = 600
-        while not os.path.exists(bloom_file_path) and wait_time < max_wait_time:
-            logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds".format(wait_time))
+        while not os.path.exists(file_path) and wait_time < max_wait_time:
+            logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
             wait_time = wait_time * 2
-        insert_query = {
-            "config": "/etc/bigsi/conf/config.yaml",
-            "bloomfilter": bloom,
-            "sample": sample_id,
-        }
-        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.insert_url, json.dumps(insert_query)))
-        out = requests.post(self.insert_url, data=insert_query)
-        logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 

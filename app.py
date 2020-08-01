@@ -25,6 +25,7 @@ TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
 BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
 BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
+BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
@@ -86,7 +87,7 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 @celery.task()
 def bigsi_build_task(file, experiment_id):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL)
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG)
     bigsi_tm.build_bigsi(file, experiment_id)
 
 
@@ -109,9 +110,9 @@ def analyse_new_sample():
     data = request.get_json()
     file = data.get("file", "")
     experiment_id = data.get("experiment_id", "")
-    res = bigsi_build_task.delay(file, experiment_id)
     res = predictor_task.delay(file, experiment_id)
     res = genotype_task.delay(file, experiment_id)
+    res = bigsi_build_task.delay(file, experiment_id)
     MAPPER.create_mapping(experiment_id, experiment_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
