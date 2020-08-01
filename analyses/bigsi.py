@@ -138,7 +138,7 @@ class BigsiTaskManager:
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         self._requests_post(self.bloom_url, bloom_query)
-        self._wait_until_available(bloom_file_path)
+        self._wait_until_available(bloom)
 
         with open(bigsi_config_path, "w") as conf:
             conf.write("h: 1\n")
