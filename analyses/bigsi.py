@@ -100,7 +100,6 @@ class BigsiTaskManager:
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
         bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
-        bloom_file_path = os.path.join(self.outdir, "{sample_id}/{sample_id}".format(sample_id=sample_id))
         bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
         bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
 
@@ -138,7 +137,7 @@ class BigsiTaskManager:
             "outfile": bloom,
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
-        out = requests.post(self.bloom_url, data=bloom_query)
+        self._requests_post(self.bloom_url, bloom_query)
         self._wait_until_available(bloom_file_path)
 
         with open(bigsi_config_path, "w") as conf:
@@ -152,12 +151,12 @@ class BigsiTaskManager:
             conf.write("  flag: \"c\"")
         self._wait_until_available(bigsi_config_path)
         build_query = {
-            "bloomfilters": [ bloom_file_path ],
-            "samples": [ sample_id ],
+            "bloomfilters": [bloom],
+            "samples": [sample_id],
             "config": bigsi_config_path
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.build_url, json.dumps(build_query)))
-        out = requests.post(self.build_url, data=build_query)
+        self._requests_post(self.build_url, build_query)
         self._wait_until_available(bigsi_db_path)
 
         merge_query = {
@@ -165,7 +164,7 @@ class BigsiTaskManager:
             "merge_config": bigsi_config_path
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
-        out = requests.post(self.merge_url, data=merge_query)
+        self._requests_post(self.merge_url, merge_query)
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
@@ -176,4 +175,13 @@ class BigsiTaskManager:
             logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
             wait_time = wait_time * 2
+
+    def _requests_post(self, url, data):
+        # Some of the call takes longer than 1 minute due to slow disk. Bigsi disconnects the call after 1 minute (todo)
+        # Temporary hack
+        try:
+            requests.post(url, data)
+        except requests.exceptions.ConnectionError as e:
+            logging.log(level=logging.DEBUG, msg="Exception thrown when calling {} with data {}: {}".format(
+                url, json.dumps(data), str(e)))
 
