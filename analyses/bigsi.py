@@ -173,12 +173,10 @@ class BigsiTaskManager:
         wait_time = 1
         while not os.path.exists(file_path) and \
                 wait_time <= max_wait_time:
-            logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
             wait_time = wait_time * 2
         wait_time = 10
         while os.path.getmtime(file_path) + 100 > time.time():
-            logging.log(level=logging.DEBUG, msg="Sleeping, wake up in {} seconds for {}".format(wait_time, file_path))
             time.sleep(wait_time)
 
     def _requests_post(self, url, data):
