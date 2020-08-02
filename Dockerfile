@@ -9,7 +9,7 @@ RUN git clone --branch v0.8.2 https://github.com/Mykrobe-tools/mykrobe.git mykro
 WORKDIR /usr/src/app/mykrobe-predictor
 RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make && cd ..
 RUN pip install -r requirements.txt && python setup.py install
-RUN ln -sf /usr/src/app/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/lib/python3.6/site-packages/mykrobe/cortex/mccortex31
+RUN ln -sf /usr/src/app/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/bin/mccortex31
 
 COPY requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r /usr/src/app/requirements.txt
