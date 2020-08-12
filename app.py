@@ -231,7 +231,8 @@ def distance_task(experiment_id, distance_type, max_distance=None, limit=None):
     else:
         raise TypeError("%s is not a valid query" % distance_type)
     url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
-    send_results("distance", results, url, sub_type=distance_type)
+    print(results)
+    # send_results("distance", results, url, sub_type=distance_type)
 
 
 @app.route("/distance", methods=["POST"])
