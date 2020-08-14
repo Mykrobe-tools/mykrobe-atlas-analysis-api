@@ -27,37 +27,29 @@ def _sort_and_filter_distance_results(results, max_distance, limit):
 class DistanceTaskManager:
     @classmethod
     def get_all(
-            cls, experiment_id, max_distance=None, limit=None, sort=True
+            cls, sample_id, max_distance=None, limit=None, sort=True
     ):
-        return DistanceTaskManager.get_nearest_neighbours(experiment_id, max_distance, limit, sort)
+        return DistanceTaskManager.get_nearest_neighbours(sample_id, max_distance, limit, sort)
 
     @classmethod
-    def get_nearest_leaf(cls, experiment_id):
+    def get_nearest_leaf(cls, sample_id):
         try:
-            results = leaf_get_api_instance.samples_id_nearest_leaf_node_get(experiment_id)
+            results = leaf_get_api_instance.samples_id_nearest_leaf_node_get(sample_id)
         except ApiException:
             results = []
         return OrderedDict({r.leaf_id: r.distance for r in results})
 
     @classmethod
     def get_nearest_neighbours(
-            cls, experiment_id, max_distance=None, limit=None, sort=True
+            cls, sample_id, max_distance=None, limit=None, sort=True
     ):
         if limit is not None:
             sort = True
         try:
-            neighbours = neighbours_get_api_instance.samples_id_nearest_neighbours_get(experiment_id)
+            results = neighbours_get_api_instance.samples_id_nearest_neighbours_get(sample_id)
         except ApiException:
-            neighbours = []
+            results = []
         if sort:
-            neighbours = _sort_and_filter_distance_results(neighbours, max_distance, limit)
-
-        query_sample_ids = [n.experiment_id for n in neighbours]
-        query_sample_ids.append(experiment_id)
-        try:
-            samples = samples_get_ids_api_instance.samples_get(ids=",".join(query_sample_ids))
-        except ApiException:
-            samples = []
-
-        distances = OrderedDict({n.experiment_id: n.distance for n in neighbours})
+            results = _sort_and_filter_distance_results(results, max_distance, limit)
+        distances = OrderedDict({r.experiment_id: r.distance for r in results})
         return distances

@@ -86,22 +86,22 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(file, experiment_id):
+def bigsi_build_task(file, sample_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_bigsi(file, experiment_id)
+    bigsi_tm.build_bigsi(file, sample_id)
 
 
 @celery.task()
-def predictor_task(file, experiment_id):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, experiment_id)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
+def predictor_task(file, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, sample_id)
+    url = os.path.join(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
-def genotype_task(file, experiment_id):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, experiment_id)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
+def genotype_task(file, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, sample_id)
+    url = os.path.join(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
 
@@ -109,11 +109,12 @@ def genotype_task(file, experiment_id):
 def analyse_new_sample():
     data = request.get_json()
     file = data.get("file", "")
-    experiment_id = data.get("experiment_id", "")
-    res = predictor_task.delay(file, experiment_id)
-    res = genotype_task.delay(file, experiment_id)
-    res = bigsi_build_task.delay(file, experiment_id)
-    MAPPER.create_mapping(experiment_id, experiment_id)
+    sample_id = data.get("sample_id", "")
+    callback_url = data.get("callback_url", "")
+    res = predictor_task.delay(file, sample_id, callback_url)
+    res = genotype_task.delay(file, sample_id)
+    res = bigsi_build_task.delay(file, sample_id)
+    MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 
@@ -213,36 +214,38 @@ DEFAULT_MAX_NN_EXPERIMENTS = 12
 
 
 @celery.task()
-def distance_task(experiment_id, distance_type, max_distance=None, limit=None):
+def distance_task(sample_id, distance_type, callback_url, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
     if distance_type == "all":
         results = DistanceTaskManager.get_all(
-            experiment_id, max_distance=max_distance, limit=limit, sort=True
+            sample_id, max_distance=max_distance, limit=limit, sort=True
         )
     elif distance_type == "tree-distance":
-        results = DistanceTaskManager.get_nearest_leaf(experiment_id)
+        results = DistanceTaskManager.get_nearest_leaf(sample_id)
     elif distance_type == "nearest-neighbour":
         results = DistanceTaskManager.get_nearest_neighbours(
-            experiment_id, max_distance=max_distance, limit=limit, sort=True
+            sample_id, max_distance=max_distance, limit=limit, sort=True
         )
     else:
         raise TypeError("%s is not a valid query" % distance_type)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
-    print(results)
-    # send_results("distance", results, url, sub_type=distance_type)
+    url = os.path.join(ATLAS_API, callback_url)
+    send_results("distance", results, url, sub_type=distance_type)
 
 
 @app.route("/distance", methods=["POST"])
 def distance():
     data = request.get_json()
-    experiment_id = data.get("experiment_id", "")
+
+    sample_id = data.get("sample_id", "")
+    callback_url = data.get("callback_url", "")
     distance_type = data.get("distance_type", "all")
+
     kwargs = data.get("params", {})
     assert distance_type in ["all", "tree-distance", "nearest-neighbour"]
-    res = distance_task.delay(experiment_id, distance_type, **kwargs)
+    res = distance_task.delay(sample_id, distance_type,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 
