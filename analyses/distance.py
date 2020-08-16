@@ -39,7 +39,7 @@ class DistanceTaskManager:
         sample_ids = [neighbour.experiment_id for neighbour in neighbours]
         sample_ids.append(sample_id)
         try:
-            samples = samples_get_ids_api_instance.samples_get(sample_ids)
+            samples = samples_get_ids_api_instance.samples_get(ids=sample_ids)
         except ApiException:
             samples = []
 
