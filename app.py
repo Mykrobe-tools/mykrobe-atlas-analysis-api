@@ -222,9 +222,8 @@ def distance_task(sample_id, callback_url, max_distance=None, limit=None):
     results = DistanceTaskManager.get_nearest_neighbours(
         sample_id, max_distance=max_distance, limit=limit, sort=True
     )
-    print(results)
     url = os.path.join(ATLAS_API, callback_url)
-    # send_results("distance", results, url)
+    send_results("distance", results, url)
 
 
 @app.route("/distance", methods=["POST"])
