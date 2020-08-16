@@ -209,43 +209,32 @@ def get_tree_isolates():
 
 
 TREE_ISOLATES = get_tree_isolates()
-DEFAULT_MAX_NN_DISTANCE = 10000
-DEFAULT_MAX_NN_EXPERIMENTS = 12
+DEFAULT_MAX_NN_DISTANCE = 100
+DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
 
 @celery.task()
-def distance_task(sample_id, distance_type, callback_url, max_distance=None, limit=None):
+def distance_task(sample_id, callback_url, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
-    if distance_type == "all":
-        results = DistanceTaskManager.get_all(
-            sample_id, max_distance=max_distance, limit=limit, sort=True
-        )
-    elif distance_type == "tree-distance":
-        results = DistanceTaskManager.get_nearest_leaf(sample_id)
-    elif distance_type == "nearest-neighbour":
-        results = DistanceTaskManager.get_nearest_neighbours(
-            sample_id, max_distance=max_distance, limit=limit, sort=True
-        )
-    else:
-        raise TypeError("%s is not a valid query" % distance_type)
+    results = DistanceTaskManager.get_nearest_neighbours(
+        sample_id, max_distance=max_distance, limit=limit, sort=True
+    )
+    print(results)
     url = os.path.join(ATLAS_API, callback_url)
-    send_results("distance", results, url, sub_type=distance_type)
+    # send_results("distance", results, url)
 
 
 @app.route("/distance", methods=["POST"])
 def distance():
     data = request.get_json()
-
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
-    distance_type = data.get("distance_type", "all")
-
     kwargs = data.get("params", {})
-    assert distance_type in ["all", "tree-distance", "nearest-neighbour"]
-    res = distance_task.delay(sample_id, distance_type,  callback_url, **kwargs)
+
+    res = distance_task.delay(sample_id,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 
