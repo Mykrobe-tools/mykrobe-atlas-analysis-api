@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict
 
 import distance_client
 from distance_client.rest import ApiException
@@ -8,7 +7,7 @@ from distance_client.configuration import Configuration
 NUM_API_CLIENT_THREADS = 10
 
 configuration = Configuration()
-configuration.host = os.environ.get("ATLAS_DISTANCE_API", "http://distance-api-service/app/v1")
+configuration.host = os.environ.get("ATLAS_DISTANCE_API", "http://distance-api-service/api/v1")
 api_client = distance_client.ApiClient(configuration=configuration, pool_threads=NUM_API_CLIENT_THREADS)
 samples_get_ids_api_instance = distance_client.SamplesGetIdsApi(api_client)
 neighbours_get_api_instance = distance_client.NeighboursGetApi(api_client)
