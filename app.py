@@ -223,6 +223,7 @@ def distance_task(sample_id, callback_url, max_distance=None, limit=None):
         sample_id, max_distance=max_distance, limit=limit, sort=True
     )
     url = os.path.join(ATLAS_API, callback_url)
+    print(url)
     requests.post(url, json=results)
 
 
