@@ -49,11 +49,6 @@ curl -H "Content-Type: application/json" -X POST -d '{"type":"protein-variant", 
 
 ```
 curl -H "Content-Type: application/json" -X POST -d '{"sample_id": "sample_id", "callback_url": "/experiments/5f21937f62e501c2ddbeeb7d/results"}' localhost:8080/distance
-
-curl -H "Content-Type: application/json" -X POST -d '{"sample_id": "sample_id", "distance_type":"tree-distance", "callback_url": "/experiments/5f21937f62e501c2ddbeeb7d/results"}' localhost:8080/distance
-
-curl -H "Content-Type: application/json" -X POST -d '{"sample_id": "sample_id", "distance_type":"nearest-neighbour", "callback_url": "/experiments/5f21937f62e501c2ddbeeb7d/results"}' localhost:8080/distance
-
 ```
 
 ## Tree
