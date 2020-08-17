@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urljoin
 from flask import Flask
 from flask import request
 from Bio import Phylo
@@ -20,7 +21,7 @@ REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://%s:6379" % REDIS_HOST)
 DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
-ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
+ATLAS_API = os.environ.get("ATLAS_API", "https://api-dev.mykro.be")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
 BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
@@ -94,14 +95,14 @@ def bigsi_build_task(file, sample_id):
 @celery.task()
 def predictor_task(file, sample_id, callback_url):
     results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, sample_id)
-    url = os.path.join(ATLAS_API, callback_url)
+    url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
 def genotype_task(file, sample_id, callback_url):
     results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, sample_id)
-    url = os.path.join(ATLAS_API, callback_url)
+    url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
 
@@ -112,7 +113,7 @@ def analyse_new_sample():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
     res = predictor_task.delay(file, sample_id, callback_url)
-    res = genotype_task.delay(file, sample_id)
+    res = genotype_task.delay(file, sample_id, callback_url)
     res = bigsi_build_task.delay(file, sample_id)
     MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
@@ -147,8 +148,7 @@ def bigsi_query_task(query_type, query, user_id, search_id):
     out = results
     if query_type in ["dna-variant", "protein-variant"]:
         out = filter_bigsi_results(out)
-    query_id = _hash(json.dumps(query))
-    url = os.path.join(ATLAS_API, "searches", search_id, "results")
+    url = urljoin(ATLAS_API, f"/searches/{search_id}/results")
     ## TODO filter for non 0/0 before sending!
     send_results(query_type, out, url, request_type="PUT")
 
@@ -185,7 +185,7 @@ def load_tree(version):
 def tree_task(version):
     assert version == "latest"
     data = load_tree(version)
-    url = os.path.join(ATLAS_API, "trees")
+    url = urljoin(ATLAS_API, "trees")
     results = {"tree": data, "version": version}
     send_results("tree", results, url)
     return results
@@ -209,43 +209,31 @@ def get_tree_isolates():
 
 
 TREE_ISOLATES = get_tree_isolates()
-DEFAULT_MAX_NN_DISTANCE = 10000
-DEFAULT_MAX_NN_EXPERIMENTS = 12
+DEFAULT_MAX_NN_DISTANCE = 100
+DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
 
 @celery.task()
-def distance_task(sample_id, distance_type, callback_url, max_distance=None, limit=None):
+def distance_task(sample_id, callback_url, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
-    if distance_type == "all":
-        results = DistanceTaskManager.get_all(
-            sample_id, max_distance=max_distance, limit=limit, sort=True
-        )
-    elif distance_type == "tree-distance":
-        results = DistanceTaskManager.get_nearest_leaf(sample_id)
-    elif distance_type == "nearest-neighbour":
-        results = DistanceTaskManager.get_nearest_neighbours(
-            sample_id, max_distance=max_distance, limit=limit, sort=True
-        )
-    else:
-        raise TypeError("%s is not a valid query" % distance_type)
-    url = os.path.join(ATLAS_API, callback_url)
-    send_results("distance", results, url, sub_type=distance_type)
+    results = DistanceTaskManager.get_nearest_neighbours(
+        sample_id, max_distance=max_distance, limit=limit, sort=True
+    )
+    callback_url = urljoin(ATLAS_API, callback_url)
+    requests.post(callback_url, json=results)
 
 
 @app.route("/distance", methods=["POST"])
 def distance():
     data = request.get_json()
-
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
-    distance_type = data.get("distance_type", "all")
-    
     kwargs = data.get("params", {})
-    assert distance_type in ["all", "tree-distance", "nearest-neighbour"]
-    res = distance_task.delay(sample_id, distance_type,  callback_url, **kwargs)
+
+    res = distance_task.delay(sample_id,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 

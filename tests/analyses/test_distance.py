@@ -1,125 +1,187 @@
 from collections import OrderedDict
 from itertools import cycle, tee
-from operator import itemgetter
 from unittest.mock import patch
 from hypothesis import assume, given, strategies as st
 
 from analyses.distance import DistanceTaskManager
-from distance_client.models import Neighbour, NearestLeaf
+from distance_client.models import Neighbour, Sample, NearestLeaf
 from distance_client import ApiException
 
 
 @given(sample_name_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
+       leaf_node_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
        distances=st.lists(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=10)))
-def test_get_nearest_neighbours(sample_name_suffixes, distances):
+def test_get_nearest_neighbours(sample_name_suffixes, leaf_node_suffixes, distances):
     sample_input_size = len(sample_name_suffixes)
     distance_input_size = len(distances)
-    assume(sample_input_size == 0 or distance_input_size > 0)
+    leaf_input_size = len(leaf_node_suffixes)
+    assume(sample_input_size == 0 or (distance_input_size > 0 and leaf_input_size > 0))
+    query_sample = 'query sample'
 
-    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_get:
-        samples_iter1, samples_iter2 = tee(sample_name_suffixes)
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_neighbours_get, \
+            patch('analyses.distance.samples_get_ids_api_instance.samples_get') as mock_samples_get:
+        samples_iter1, samples_iter2, samples_iter3 = tee(sample_name_suffixes, 3)
+        leaves_iter1, leaves_iter2 = tee(leaf_node_suffixes)
         distances_iter1, distances_iter2 = tee(distances)
-        mock_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_neighbours_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_samples_get.return_value = [Sample(experiment_id="s"+str(s), nearest_leaf_node=NearestLeaf("l"+str(l), 0))
+                                         for s, l in zip(samples_iter2, cycle(leaves_iter1))]
+        mock_samples_get.return_value.append(Sample(experiment_id=query_sample, nearest_leaf_node=NearestLeaf('ln', 0)))
 
-        expected_data = {"s"+str(s): d for s, d in zip(samples_iter2, cycle(distances_iter2))}
-        expected = OrderedDict(sorted(expected_data.items(), key=itemgetter(1)))
+        expected_neighbours = [{
+            'sampleId': "s"+str(s),
+            'leafId': 'l'+str(l),
+            'distance': d
+        } for s, l, d in zip(samples_iter3, cycle(leaves_iter2), cycle(distances_iter2))]
+        expected_neighbours.sort(key=lambda x: x['distance'])
+        expected = {
+            'type': 'distance',
+            'leafId': 'ln',
+            'result': expected_neighbours
+        }
 
-        actual = DistanceTaskManager.get_nearest_neighbours('query sample')
+        actual = DistanceTaskManager.get_nearest_neighbours(query_sample)
 
         assert actual == expected
 
 
 @given(sample_name_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
+       leaf_node_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
        distances=st.lists(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=10)),
        limit=st.integers(min_value=1, max_value=10),
        sort=st.one_of(st.none(), st.booleans()))
-def test_get_nearest_neighbours_with_limit(sample_name_suffixes, distances, limit, sort):
+def test_get_nearest_neighbours_with_limit(sample_name_suffixes, leaf_node_suffixes, distances, limit, sort):
     sample_input_size = len(sample_name_suffixes)
     distance_input_size = len(distances)
-    assume(sample_input_size == 0 or distance_input_size > 0)
-    print(sort)
-    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_get:
-        samples_iter1, samples_iter2 = tee(sample_name_suffixes)
+    leaf_input_size = len(leaf_node_suffixes)
+    assume(sample_input_size == 0 or (distance_input_size > 0 and leaf_input_size > 0))
+    query_sample = 'query sample'
+
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_neighbours_get, \
+            patch('analyses.distance.samples_get_ids_api_instance.samples_get') as mock_samples_get:
+        samples_iter1, samples_iter2, samples_iter3 = tee(sample_name_suffixes, 3)
+        leaves_iter1, leaves_iter2 = tee(leaf_node_suffixes)
         distances_iter1, distances_iter2 = tee(distances)
-        mock_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_neighbours_get.return_value = [Neighbour("s" + str(s), d) for s, d in
+                                            zip(samples_iter1, cycle(distances_iter1))]
+        mock_samples_get.return_value = [
+            Sample(experiment_id="s" + str(s), nearest_leaf_node=NearestLeaf("l" + str(l), 0))
+            for s, l in zip(samples_iter2, cycle(leaves_iter1))]
+        mock_samples_get.return_value.append(Sample(experiment_id=query_sample, nearest_leaf_node=NearestLeaf('ln', 0)))
 
-        expected_data = {"s"+str(s): d for s, d in zip(samples_iter2, cycle(distances_iter2))}
-        expected = OrderedDict(sorted(expected_data.items(), key=itemgetter(1))[:limit])
+        expected_neighbours = [{
+            'sampleId': "s" + str(s),
+            'leafId': 'l' + str(l),
+            'distance': d
+        } for s, l, d in zip(samples_iter3, cycle(leaves_iter2), cycle(distances_iter2))]
+        expected_neighbours.sort(key=lambda x: x['distance'])
+        expected_neighbours = expected_neighbours[:limit]
+        expected = {
+            'type': 'distance',
+            'leafId': 'ln',
+            'result': expected_neighbours
+        }
 
-        actual = DistanceTaskManager.get_nearest_neighbours('query sample', limit=limit, sort=sort)
+        actual = DistanceTaskManager.get_nearest_neighbours(query_sample, limit=limit, sort=sort)
 
         assert actual == expected
 
 
 @given(sample_name_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
+       leaf_node_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
        distances=st.lists(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=10)),
        max_distance=st.integers(min_value=0, max_value=10))
-def test_get_nearest_neighbours_with_max_distance(sample_name_suffixes, distances, max_distance):
+def test_get_nearest_neighbours_with_max_distance(sample_name_suffixes, leaf_node_suffixes, distances, max_distance):
     sample_input_size = len(sample_name_suffixes)
     distance_input_size = len(distances)
-    assume(sample_input_size == 0 or distance_input_size > 0)
+    leaf_input_size = len(leaf_node_suffixes)
+    assume(sample_input_size == 0 or (distance_input_size > 0 and leaf_input_size > 0))
+    query_sample = 'query sample'
 
-    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_get:
-        samples_iter1, samples_iter2 = tee(sample_name_suffixes)
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_neighbours_get, \
+            patch('analyses.distance.samples_get_ids_api_instance.samples_get') as mock_samples_get:
+        samples_iter1, samples_iter2, samples_iter3 = tee(sample_name_suffixes, 3)
+        leaves_iter1, leaves_iter2 = tee(leaf_node_suffixes)
         distances_iter1, distances_iter2 = tee(distances)
-        mock_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_neighbours_get.return_value = [Neighbour("s" + str(s), d) for s, d in
+                                            zip(samples_iter1, cycle(distances_iter1))]
+        mock_samples_get.return_value = [
+            Sample(experiment_id="s" + str(s), nearest_leaf_node=NearestLeaf("l" + str(l), 0))
+            for s, l in zip(samples_iter2, cycle(leaves_iter1))]
+        mock_samples_get.return_value.append(Sample(experiment_id=query_sample, nearest_leaf_node=NearestLeaf('ln', 0)))
 
-        expected_data = {"s"+str(s): d for s, d in zip(samples_iter2, cycle(distances_iter2)) if d <= max_distance}
-        expected = OrderedDict(sorted(expected_data.items(), key=itemgetter(1)))
+        expected_neighbours = [{
+            'sampleId': "s" + str(s),
+            'leafId': 'l' + str(l),
+            'distance': d
+        } for s, l, d in zip(samples_iter3, cycle(leaves_iter2), cycle(distances_iter2)) if d <= max_distance]
+        expected_neighbours.sort(key=lambda x: x['distance'])
+        expected = {
+            'type': 'distance',
+            'leafId': 'ln',
+            'result': expected_neighbours
+        }
 
-        actual = DistanceTaskManager.get_nearest_neighbours('query sample', max_distance=max_distance)
+        actual = DistanceTaskManager.get_nearest_neighbours(query_sample, max_distance=max_distance)
 
         assert actual == expected
 
 
 @given(sample_name_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
+       leaf_node_suffixes=st.sets(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=100)),
        distances=st.lists(min_size=0, max_size=10, elements=st.integers(min_value=0, max_value=10)),
        sort=st.booleans())
-def test_get_nearest_neighbours_with_sort(sample_name_suffixes, distances, sort):
+def test_get_nearest_neighbours_with_sort(sample_name_suffixes, leaf_node_suffixes, distances, sort):
     sample_input_size = len(sample_name_suffixes)
     distance_input_size = len(distances)
-    assume(sample_input_size == 0 or distance_input_size > 0)
+    leaf_input_size = len(leaf_node_suffixes)
+    assume(sample_input_size == 0 or (distance_input_size > 0 and leaf_input_size > 0))
+    query_sample = 'query sample'
 
-    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_get:
-        samples_iter1, samples_iter2 = tee(sample_name_suffixes)
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock_neighbours_get, \
+            patch('analyses.distance.samples_get_ids_api_instance.samples_get') as mock_samples_get:
+        samples_iter1, samples_iter2, samples_iter3 = tee(sample_name_suffixes, 3)
+        leaves_iter1, leaves_iter2 = tee(leaf_node_suffixes)
         distances_iter1, distances_iter2 = tee(distances)
-        mock_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_neighbours_get.return_value = [Neighbour("s"+str(s), d) for s, d in zip(samples_iter1, cycle(distances_iter1))]
+        mock_samples_get.return_value = [Sample(experiment_id="s"+str(s), nearest_leaf_node=NearestLeaf("l"+str(l), 0))
+                                         for s, l in zip(samples_iter2, cycle(leaves_iter1))]
+        mock_samples_get.return_value.append(Sample(experiment_id=query_sample, nearest_leaf_node=NearestLeaf('ln', 0)))
 
-        expected_data = {"s"+str(s): d for s, d in zip(samples_iter2, cycle(distances_iter2))}
+        expected_neighbours = [{
+            'sampleId': "s"+str(s),
+            'leafId': 'l'+str(l),
+            'distance': d
+        } for s, l, d in zip(samples_iter3, cycle(leaves_iter2), cycle(distances_iter2))]
         if sort:
-            expected_data = sorted(expected_data.items(), key=itemgetter(1))
-        expected = OrderedDict(expected_data)
+            expected_neighbours.sort(key=lambda x: x['distance'])
+        expected = {
+            'type': 'distance',
+            'leafId': 'ln',
+            'result': expected_neighbours
+        }
 
-        actual = DistanceTaskManager.get_nearest_neighbours('query sample', sort=sort)
+        actual = DistanceTaskManager.get_nearest_neighbours(query_sample, sort=sort)
 
         assert actual == expected
 
 
 def test_get_nearest_neighbours_handle_api_exception():
-    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get', side_effect=ApiException):
-        expected = OrderedDict({})
-
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get', side_effect=ApiException),\
+         patch('analyses.distance.samples_get_ids_api_instance.samples_get', side_effect=ApiException):
         actual = DistanceTaskManager.get_nearest_neighbours('query sample')
-
-        assert actual == expected
-
-
-@given(leaf_name_suffix=st.integers(), distance=st.integers(min_value=0, max_value=10))
-def test_get_nearest_leaf(leaf_name_suffix, distance):
-    with patch('analyses.distance.leaf_get_api_instance.samples_id_nearest_leaf_node_get') as mock_get:
-        mock_get.return_value = [NearestLeaf("l"+str(leaf_name_suffix), distance)]
-
-        expected = OrderedDict({"l"+str(leaf_name_suffix): distance})
-
-        actual = DistanceTaskManager.get_nearest_leaf('query sample')
-
-        assert actual == expected
-
-
-def test_get_nearest_leaf_handle_api_exception():
-    with patch('analyses.distance.leaf_get_api_instance.samples_id_nearest_leaf_node_get', side_effect=ApiException):
-        expected = OrderedDict({})
-
-        actual = DistanceTaskManager.get_nearest_leaf('query sample')
-
-        assert actual == expected
+        assert actual == {}
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get') as mock,\
+         patch('analyses.distance.samples_get_ids_api_instance.samples_get', side_effect=ApiException):
+        mock.return_value = [Neighbour("s1", 0)]
+        actual = DistanceTaskManager.get_nearest_neighbours('query sample')
+        assert actual == {}
+    with patch('analyses.distance.neighbours_get_api_instance.samples_id_nearest_neighbours_get', side_effect=ApiException),\
+         patch('analyses.distance.samples_get_ids_api_instance.samples_get') as mock:
+        mock.return_value = [Sample(experiment_id="query sample", nearest_leaf_node=NearestLeaf("l1", 2))]
+        actual = DistanceTaskManager.get_nearest_neighbours('query sample')
+        assert actual == {
+            'type': 'distance',
+            'leafId': 'l1',
+            'result': []
+        }
