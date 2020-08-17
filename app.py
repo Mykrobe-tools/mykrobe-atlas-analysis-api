@@ -29,6 +29,7 @@ BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/confi
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
+print("atlas_api: {}".format(ATLAS_API))
 
 def make_celery(app):
     celery = Celery(
@@ -231,8 +232,9 @@ def distance():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
     kwargs = data.get("params", {})
-
+    print("atlas_api: {}".format(ATLAS_API))
     callback_url = os.path.join(ATLAS_API, callback_url)
+    print("callback_url: {}".format(callback_url))
     res = distance_task.delay(sample_id,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
