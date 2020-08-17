@@ -148,8 +148,7 @@ def bigsi_query_task(query_type, query, user_id, search_id):
     out = results
     if query_type in ["dna-variant", "protein-variant"]:
         out = filter_bigsi_results(out)
-    query_id = _hash(json.dumps(query))
-    url = urljoin(ATLAS_API, "searches", search_id, "results")
+    url = urljoin(ATLAS_API, f"/searches/{search_id}/results")
     ## TODO filter for non 0/0 before sending!
     send_results(query_type, out, url, request_type="PUT")
 
