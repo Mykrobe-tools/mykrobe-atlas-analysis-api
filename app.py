@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urljoin
 from flask import Flask
 from flask import request
 from Bio import Phylo
@@ -29,7 +30,6 @@ BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/confi
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
-print("atlas_api: {}".format(ATLAS_API))
 
 def make_celery(app):
     celery = Celery(
@@ -95,14 +95,14 @@ def bigsi_build_task(file, sample_id):
 @celery.task()
 def predictor_task(file, sample_id, callback_url):
     results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, sample_id)
-    url = os.path.join(ATLAS_API, callback_url)
+    url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
 def genotype_task(file, sample_id, callback_url):
     results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, sample_id)
-    url = os.path.join(ATLAS_API, callback_url)
+    url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
 
@@ -149,7 +149,7 @@ def bigsi_query_task(query_type, query, user_id, search_id):
     if query_type in ["dna-variant", "protein-variant"]:
         out = filter_bigsi_results(out)
     query_id = _hash(json.dumps(query))
-    url = os.path.join(ATLAS_API, "searches", search_id, "results")
+    url = urljoin(ATLAS_API, "searches", search_id, "results")
     ## TODO filter for non 0/0 before sending!
     send_results(query_type, out, url, request_type="PUT")
 
@@ -186,7 +186,7 @@ def load_tree(version):
 def tree_task(version):
     assert version == "latest"
     data = load_tree(version)
-    url = os.path.join(ATLAS_API, "trees")
+    url = urljoin(ATLAS_API, "trees")
     results = {"tree": data, "version": version}
     send_results("tree", results, url)
     return results
@@ -223,6 +223,7 @@ def distance_task(sample_id, callback_url, max_distance=None, limit=None):
     results = DistanceTaskManager.get_nearest_neighbours(
         sample_id, max_distance=max_distance, limit=limit, sort=True
     )
+    callback_url = urljoin(ATLAS_API, callback_url)
     requests.post(callback_url, json=results)
 
 
@@ -232,9 +233,7 @@ def distance():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
     kwargs = data.get("params", {})
-    print("atlas_api: {}".format(ATLAS_API))
-    callback_url = os.path.join(ATLAS_API, callback_url)
-    print("callback_url: {}".format(callback_url))
+
     res = distance_task.delay(sample_id,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
