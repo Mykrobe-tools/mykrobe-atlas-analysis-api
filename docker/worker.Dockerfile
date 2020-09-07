@@ -11,10 +11,10 @@ RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mc
 RUN pip install -r requirements.txt && python setup.py install
 RUN ln -sf /usr/src/app/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/bin/mccortex31
 
-COPY requirements.txt /usr/src/app/requirements.txt
+COPY ../requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r /usr/src/app/requirements.txt
 
-COPY . /usr/src/app
+COPY .. /usr/src/app
 WORKDIR /usr/src/app/
 ENV FLASK_DEBUG=1
 CMD uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi
