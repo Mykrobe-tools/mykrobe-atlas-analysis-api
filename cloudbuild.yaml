@@ -47,7 +47,7 @@ steps:
 
   # Build and push API image
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/api.Dockerfile", "."]
+    args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-t", "latest", "-f", "./docker/api.Dockerfile", "."]
     volumes:
       - name: "ssh"
         path: /root/.ssh
