@@ -8,6 +8,8 @@ import logging
 MAX_POLL_COUNT = 30
 POLL_INTERVAL_SECONDS = 1
 
+logger = logging.getLogger(__name__)
+
 
 class BigsiTaskManager:
     def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="", bigsi_build_config=""):
@@ -65,6 +67,9 @@ class BigsiTaskManager:
             return {"error": "failed to complete bigsi query"}
 
     def seq_query(self, query):
+        logger.info(self.seq_query.__name__)
+        logger.debug('query: %s', query)
+
         search_url = self.sequence_search_url
         # query: {
         #   seq: "GTCAGTCCGTTTGTTCTTGTGGCGAGTGTAGTA",
