@@ -1,4 +1,5 @@
-FROM eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api:latest
+ARG tag=latest
+FROM eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api:$tag
 
 ## Install Mykrobe atlas cli
 RUN git clone --branch v0.8.2 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
