@@ -53,13 +53,6 @@ steps:
         path: /root/.ssh
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "$_IMAGE_REPOSITORY:$SHORT_SHA"]
-  - name: gcr.io/cloud-builders/gcloud
-    entrypoint: "bash"
-    args:
-      [
-        "-c",
-        "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
-      ]
   - name: gcr.io/cloud-builders/curl
     entrypoint: /bin/bash
     args:
@@ -77,6 +70,15 @@ steps:
     entrypoint: /bin/bash
     args:
       [ "-c", "echo '$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/worker_version.txt" ]
+
+  # Get token
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      [
+          "-c",
+          "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
+      ]
 
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
