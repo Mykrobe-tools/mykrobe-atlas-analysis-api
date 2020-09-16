@@ -76,8 +76,8 @@ steps:
     entrypoint: "bash"
     args:
       [
-          "-c",
-          "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
+        "-c",
+        "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
       ]
 
   - name: gcr.io/cloud-builders/gcloud
