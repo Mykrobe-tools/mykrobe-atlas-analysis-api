@@ -71,6 +71,8 @@ requests_log = logging.getLogger("requests.packages.urllib3")
 requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 
+logger = logging.getLogger(__name__)
+
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
     ## POST /isolates/:id/result { type: "…", result: { … } }
@@ -138,6 +140,12 @@ def filter_bigsi_results(d):
 
 @celery.task()
 def bigsi_query_task(query_type, query, user_id, search_id):
+    logger.info(bigsi_query_task.__name__)
+    logger.debug('query_type: %s', query_type)
+    logger.debug('query: %s', query)
+    logger.debug('user_id: %s', user_id)
+    logger.debug('search_id: %s', search_id)
+
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
@@ -155,7 +163,11 @@ def bigsi_query_task(query_type, query, user_id, search_id):
 
 @app.route("/search", methods=["POST"])
 def search():
+    logger.info(search.__name__)
+
     data = request.get_json()
+    logger.debug('data: %s', data)
+
     t = data.get("type", "")
     query = data.get("query", "")
     user_id = data.get("user_id", "")

@@ -45,13 +45,33 @@ steps:
     - "-c"
     - 'pip install -r requirements.txt && pip install -r test_requirements.txt && python3 -m pytest tests/'
 
+  # Build and push API image
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./Dockerfile", "."]
+    args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/api.Dockerfile", "."]
     volumes:
       - name: "ssh"
         path: /root/.ssh
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "$_IMAGE_REPOSITORY:$SHORT_SHA"]
+  - name: gcr.io/cloud-builders/curl
+    entrypoint: /bin/bash
+    args:
+      ["-c", "echo '$_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/api_version.txt"]
+
+  # Build and push worker image
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "build", "--build-arg", "tag=$SHORT_SHA", "-t", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/worker.Dockerfile", "." ]
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "push", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA" ]
+  - name: gcr.io/cloud-builders/curl
+    entrypoint: /bin/bash
+    args:
+      [ "-c", "echo '$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/worker_version.txt" ]
+
+  # Get token
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
     args:
@@ -59,14 +79,12 @@ steps:
         "-c",
         "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
       ]
-  - name: gcr.io/cloud-builders/curl
-    entrypoint: /bin/bash
-    args:
-      ["-c", "echo '$_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/version.txt"]
+
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
     args: ["cloudbuild-deploy.sh"]
 substitutions:
   _IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api
+  _WORKER_IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api-worker
   _BITBUCKET_SECRET: ms-bitbucket-readonly
   _GITHUB_SECRET: atlas-jsonschema-readonly
