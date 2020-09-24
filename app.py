@@ -211,16 +211,6 @@ def tree(version):
 
 
 TREE_PATH = {"1.0": TB_TREE_PATH_V1}
-
-
-def get_tree_isolates():
-    newick = load_tree("latest")
-    tree = Phylo.read(StringIO(newick), "newick")
-    tree_isolates = [c.name for c in tree.get_terminals()]
-    return tree_isolates
-
-
-TREE_ISOLATES = get_tree_isolates()
 DEFAULT_MAX_NN_DISTANCE = 100
 DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
