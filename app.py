@@ -2,7 +2,6 @@ import os
 from urllib.parse import urljoin
 from flask import Flask
 from flask import request
-from Bio import Phylo
 
 try:
     from StringIO import StringIO
@@ -21,6 +20,7 @@ REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://%s:6379" % REDIS_HOST)
 DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
+SKELETON_DIR = os.environ.get("SKELETON_DIR", "/config/")
 ATLAS_API = os.environ.get("ATLAS_API", "https://api-dev.mykro.be")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
@@ -96,14 +96,14 @@ def bigsi_build_task(file, sample_id):
 
 @celery.task()
 def predictor_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, sample_id)
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(file, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
 def genotype_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, sample_id)
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(file, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
