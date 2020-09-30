@@ -46,6 +46,8 @@ class BigsiTaskManager:
 
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
+        if "id" not in r:
+            return {"error": "failed to complete bigsi query"}
         _id = r["id"]
         search_result_url = "".join([search_url, _id])
         POLL = True
