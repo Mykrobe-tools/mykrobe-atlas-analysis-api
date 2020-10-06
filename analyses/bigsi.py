@@ -5,8 +5,8 @@ import subprocess
 import os
 import logging
 
-MAX_POLL_COUNT = 30
-POLL_INTERVAL_SECONDS = 1
+MAX_POLL_COUNT = 50
+POLL_INTERVAL_SECONDS = 3
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class BigsiTaskManager:
             counter += 1
             if counter > MAX_POLL_COUNT:
                 POLL = False
-                return {}
+                return {"error": "failed to complete bigsi query"}
             else:
                 time.sleep(POLL_INTERVAL_SECONDS)
         if r["status"] == "COMPLETE":
