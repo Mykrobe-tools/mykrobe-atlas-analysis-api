@@ -5,8 +5,8 @@ import subprocess
 import os
 import logging
 
-MAX_POLL_COUNT = 30
-POLL_INTERVAL_SECONDS = 1
+MAX_POLL_COUNT = 50
+POLL_INTERVAL_SECONDS = 3
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,8 @@ class BigsiTaskManager:
 
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
+        if "id" not in r:
+            return {"error": "failed to complete bigsi query"}
         _id = r["id"]
         search_result_url = "".join([search_url, _id])
         POLL = True
@@ -58,7 +60,7 @@ class BigsiTaskManager:
             counter += 1
             if counter > MAX_POLL_COUNT:
                 POLL = False
-                return {}
+                return {"error": "failed to complete bigsi query"}
             else:
                 time.sleep(POLL_INTERVAL_SECONDS)
         if r["status"] == "COMPLETE":
