@@ -11,5 +11,5 @@ configuration.host = os.environ.get("ATLAS_TRACKING_API", "http://distance-api-s
 api_client = tracking_client.ApiClient(configuration=configuration, pool_threads=NUM_API_CLIENT_THREADS)
 
 
-class DistanceTaskManager:
+class TrackingTaskManager:
     pass
