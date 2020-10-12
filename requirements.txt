@@ -6,3 +6,4 @@ redis
 uwsgi
 bitarray
 git+git://github.com/Mykrobe-tools/mykrobe-atlas-distance-client@d393b4ab5865deabd96d758294ea825d09051cbb
+git+git://github.com/Mykrobe-tools/mykrobe-atlas-tracking-client@f28faaa8ae307b7950b440d986efd4c9fbeaa746
