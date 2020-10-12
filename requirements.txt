@@ -1,4 +1,5 @@
 flask
+biopython
 celery
 requests
 redis
