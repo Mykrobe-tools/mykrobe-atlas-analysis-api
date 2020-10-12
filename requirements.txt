@@ -4,4 +4,9 @@ requests
 redis
 uwsgi
 bitarray
+<<<<<<< Updated upstream
 
+=======
+git+git://github.com/Mykrobe-tools/mykrobe-atlas-distance-client@d393b4ab5865deabd96d758294ea825d09051cbb
+git+git://github.com/Mykrobe-tools/mykrobe-atlas-tracking-client@bdd7aef3e48be6c830e887d004422d958dcc9486
+>>>>>>> Stashed changes
