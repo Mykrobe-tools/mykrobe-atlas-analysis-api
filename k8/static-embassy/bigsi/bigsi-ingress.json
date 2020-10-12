@@ -1,0 +1,41 @@
+{
+  "apiVersion": "extensions/v1beta1",
+  "kind": "Ingress",
+  "metadata": {
+    "name": "bigsi-ingress",
+    "annotations": {
+      "kubernetes.io/ingress.class": "nginx",
+      "cert-manager.io/cluster-issuer": "letsencrypt-prod"
+    },
+    "namespace": "default"
+  },
+  "spec": {
+    "backend": {
+      "serviceName": "mykrobe-atlas-bigsi-aggregator-api-service",
+      "servicePort": 80
+    },
+    "tls": [
+      {
+        "hosts": [
+          "bigsi-dev.mykro.be"
+        ],
+        "secretName": "bigsi-dev-mykro-be-tls"
+      }
+    ],
+    "rules": [
+      {
+        "host": "bigsi-dev.mykro.be",
+        "http": {
+          "paths": [
+            {
+              "backend": {
+                "serviceName": "mykrobe-atlas-bigsi-aggregator-api-service",
+                "servicePort": 80
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

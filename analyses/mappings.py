@@ -24,9 +24,9 @@ class MappingsManager:
         self.rhkey = "reverse" + self.hkey
         self.redis = redis
 
-    def create_mapping(self, experiment_id, isolate_id):
-        self.redis.hset(self.hkey, experiment_id, isolate_id)
-        self.redis.hset(self.rhkey, isolate_id, experiment_id)
+    def create_mapping(self, sample_id, isolate_id):
+        self.redis.hset(self.hkey, sample_id, isolate_id)
+        self.redis.hset(self.rhkey, isolate_id, sample_id)
 
     def experiment_ids_to_isolate_ids(self):
         return decode_dict(self.redis.hgetall(self.hkey))

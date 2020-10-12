@@ -1,7 +1,7 @@
 import os
+from urllib.parse import urljoin
 from flask import Flask
 from flask import request
-from Bio import Phylo
 
 try:
     from StringIO import StringIO
@@ -20,12 +20,13 @@ REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://%s:6379" % REDIS_HOST)
 DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
-ATLAS_API = os.environ.get("ATLAS_API", "https://api.atlas-prod.makeandship.com/")
+SKELETON_DIR = os.environ.get("SKELETON_DIR", "/config/")
+ATLAS_API = os.environ.get("ATLAS_API", "https://api-dev.mykro.be")
 TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
-BIGSI_URL = os.environ.get(
-    "BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1"
-)
+BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
+BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
+BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
 
@@ -70,6 +71,8 @@ requests_log = logging.getLogger("requests.packages.urllib3")
 requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 
+logger = logging.getLogger(__name__)
+
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
     ## POST /isolates/:id/result { type: "…", result: { … } }
@@ -82,36 +85,39 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
         r = requests.post(url, json=d)
 
 
-## Predictor
+## Analysis
 
 
 @celery.task()
-def predictor_task(file, experiment_id):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_predictor(file, experiment_id)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
+def bigsi_build_task(file, sample_id):
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG)
+    bigsi_tm.build_bigsi(file, sample_id)
+
+
+@celery.task()
+def predictor_task(file, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(file, sample_id)
+    url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
-def genotype_task(file, experiment_id):
-    results = PredictorTaskManager(DEFAULT_OUTDIR).run_genotype(file, experiment_id)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
+def genotype_task(file, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(file, sample_id)
+    url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
-    ## Insert distance results
-    DistanceTaskManager().insert(results)
-    # ## Trigger distance tasks
-    res = distance_task.delay(experiment_id, "tree-distance")
-    res = distance_task.delay(experiment_id, "nearest-neighbour")
 
 
 @app.route("/analyses", methods=["POST"])
-def predictor():
+def analyse_new_sample():
     data = request.get_json()
     file = data.get("file", "")
-    experiment_id = data.get("experiment_id", "")
-    res = predictor_task.delay(file, experiment_id)
-    res = genotype_task.delay(file, experiment_id)
-    MAPPER.create_mapping(experiment_id, experiment_id)
+    sample_id = data.get("sample_id", "")
+    callback_url = data.get("callback_url", "")
+    res = predictor_task.delay(file, sample_id, callback_url)
+    res = genotype_task.delay(file, sample_id, callback_url)
+    res = bigsi_build_task.delay(file, sample_id)
+    MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 
@@ -133,7 +139,13 @@ def filter_bigsi_results(d):
 
 
 @celery.task()
-def bigsi(query_type, query, user_id, search_id):
+def bigsi_query_task(query_type, query, user_id, search_id):
+    logger.info(bigsi_query_task.__name__)
+    logger.debug('query_type: %s', query_type)
+    logger.debug('query: %s', query)
+    logger.debug('user_id: %s', user_id)
+    logger.debug('search_id: %s', search_id)
+
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
@@ -142,20 +154,24 @@ def bigsi(query_type, query, user_id, search_id):
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
     out = results
-    query_id = _hash(json.dumps(query))
-    url = os.path.join(ATLAS_API, "searches", search_id, "results")
-    ## TODO filter for non 0/0 before sending!
-    send_results(query_type, filter_bigsi_results(out), url, request_type="PUT")
+    if query_type in ["dna-variant", "protein-variant"] and "results" in out:
+        out = filter_bigsi_results(out)
+    url = urljoin(ATLAS_API, f"/searches/{search_id}/results")
+    send_results(query_type, out, url, request_type="PUT")
 
 
 @app.route("/search", methods=["POST"])
 def search():
+    logger.info(search.__name__)
+
     data = request.get_json()
+    logger.debug('data: %s', data)
+
     t = data.get("type", "")
     query = data.get("query", "")
     user_id = data.get("user_id", "")
     search_id = data.get("search_id", "")
-    res = bigsi.delay(t, query, user_id, search_id)
+    res = bigsi_query_task.delay(t, query, user_id, search_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 
@@ -180,7 +196,7 @@ def load_tree(version):
 def tree_task(version):
     assert version == "latest"
     data = load_tree(version)
-    url = os.path.join(ATLAS_API, "trees")
+    url = urljoin(ATLAS_API, "trees")
     results = {"tree": data, "version": version}
     send_results("tree", results, url)
     return results
@@ -194,50 +210,31 @@ def tree(version):
 
 
 TREE_PATH = {"1.0": TB_TREE_PATH_V1}
-
-
-def get_tree_isolates():
-    newick = load_tree("latest")
-    tree = Phylo.read(StringIO(newick), "newick")
-    tree_isolates = [c.name for c in tree.get_terminals()]
-    return tree_isolates
-
-
-TREE_ISOLATES = get_tree_isolates()
-DEFAULT_MAX_NN_DISTANCE = 10000
-DEFAULT_MAX_NN_EXPERIMENTS = 12
+DEFAULT_MAX_NN_DISTANCE = 100
+DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
 
 @celery.task()
-def distance_task(experiment_id, distance_type, max_distance=None, limit=None):
+def distance_task(sample_id, callback_url, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
         limit = DEFAULT_MAX_NN_EXPERIMENTS
-    if distance_type == "all":
-        results = DistanceTaskManager().distance(experiment_id, sort=True)
-    elif distance_type == "tree-distance":
-        results = DistanceTaskManager().distance(
-            experiment_id, samples=TREE_ISOLATES, sort=True
-        )
-    elif distance_type == "nearest-neighbour":
-        results = DistanceTaskManager().distance(
-            experiment_id, max_distance=max_distance, limit=limit, sort=True
-        )
-    else:
-        raise TypeError("%s is not a valid query" % distance_type)
-    url = os.path.join(ATLAS_API, "experiments", experiment_id, "results")
-    send_results("distance", results, url, sub_type=distance_type)
+    results = DistanceTaskManager.get_nearest_neighbours(
+        sample_id, max_distance=max_distance, limit=limit, sort=True
+    )
+    callback_url = urljoin(ATLAS_API, callback_url)
+    requests.post(callback_url, json=results)
 
 
 @app.route("/distance", methods=["POST"])
 def distance():
     data = request.get_json()
-    experiment_id = data.get("experiment_id", "")
-    distance_type = data.get("distance_type", "all")
+    sample_id = data.get("sample_id", "")
+    callback_url = data.get("callback_url", "")
     kwargs = data.get("params", {})
-    assert distance_type in ["all", "tree-distance", "nearest-neighbour"]
-    res = distance_task.delay(experiment_id, distance_type, **kwargs)
+
+    res = distance_task.delay(sample_id,  callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 

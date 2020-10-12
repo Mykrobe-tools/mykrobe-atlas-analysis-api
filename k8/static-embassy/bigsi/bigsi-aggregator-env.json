@@ -1,0 +1,15 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+  	"name": "bigsi-aggregator-env",
+    "namespace": "default"
+  },
+  "data": {
+  	"BIGSI_URLS": "http://mykrobe-atlas-bigsi-service",
+  	"REDIS_IP": "redis",
+    "REDIS_HOST": "redis",
+    "REDIS_PORT": "6379",
+    "ATLAS_API": "https://api-dev.mykro.be"
+  }
+}

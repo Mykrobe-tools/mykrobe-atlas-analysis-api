@@ -1,0 +1,67 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-analysis-api",
+		"labels": {
+			"app": "mykrobe-atlas-analysis-api"
+		},
+    	"namespace": "default"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-analysis-api"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-analysis-api"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "uploads-data",
+						"persistentVolumeClaim": {
+							"claimName": "uploads-data"
+						}
+					}
+				],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-analysis",
+						"image": "phelimb/mykrobe-atlas-analysis-api:113af42",
+						"command": ["/bin/sh"],
+        				"args": ["-c","uwsgi --http :80  --harakiri 300  --buffer-size=65535  -w wsgi:app"],
+						"ports": [
+							{
+								"containerPort": 80
+							}
+						],
+						"volumeMounts": [
+							{
+								"mountPath": "/data/",
+								"name": "uploads-data"
+							}
+						],
+						"envFrom": [
+							{
+								"configMapRef": {
+									"name": "atlas-analysis-api-env"
+								}
+							}
+						],
+						"env": [
+							{
+								"name": "CONFIG_HASH_MD5",
+								"value": "0960112ac0a45b542a3c77aea5f2ceb4"
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}

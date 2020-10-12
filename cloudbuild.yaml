@@ -1,0 +1,90 @@
+# Access the id_github file from Secret Manager
+steps:
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      [
+        "-c",
+        "gcloud secrets versions access latest --secret=$_GITHUB_SECRET > /root/.ssh/id_github",
+      ]
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      [
+        "-c",
+        "gcloud secrets versions access latest --secret=$_BITBUCKET_SECRET > /root/.ssh/id_bitbucket",
+      ]
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+
+  # Set up git with key and domain
+  - name: gcr.io/cloud-builders/git
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        chmod 600 /root/.ssh/id_github
+        chmod 600 /root/.ssh/id_bitbucket
+        cat <<EOF >/root/.ssh/config
+        IdentityFile /root/.ssh/id_bitbucket
+        IdentityFile /root/.ssh/id_github
+        EOF
+        ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
+        ssh-keyscan github.com >> /root/.ssh/known_hosts
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+
+  - name: 'python:3.6'
+    entrypoint: "bash"
+    args:
+    - "-c"
+    - 'pip install -r requirements.txt && pip install -r test_requirements.txt && python3 -m pytest tests/'
+
+  # Build and push API image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "$_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/api.Dockerfile", "."]
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "$_IMAGE_REPOSITORY:$SHORT_SHA"]
+  - name: gcr.io/cloud-builders/curl
+    entrypoint: /bin/bash
+    args:
+      ["-c", "echo '$_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/api_version.txt"]
+
+  # Build and push worker image
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "build", "--build-arg", "tag=$SHORT_SHA", "-t", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/worker.Dockerfile", "." ]
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "push", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA" ]
+  - name: gcr.io/cloud-builders/curl
+    entrypoint: /bin/bash
+    args:
+      [ "-c", "echo '$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA' > /workspace/worker_version.txt" ]
+
+  # Get token
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      [
+        "-c",
+        "gcloud secrets versions access latest --secret=ehk-token --format='get(payload.data)' | tr '_-' '/+' | base64 -d > /workspace/ehk-token.txt",
+      ]
+
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args: ["cloudbuild-deploy.sh"]
+substitutions:
+  _IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api
+  _WORKER_IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api-worker
+  _BITBUCKET_SECRET: ms-bitbucket-readonly
+  _GITHUB_SECRET: atlas-jsonschema-readonly

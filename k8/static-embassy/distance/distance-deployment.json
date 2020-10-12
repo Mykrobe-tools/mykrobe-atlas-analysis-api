@@ -1,0 +1,52 @@
+{
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+		"name": "mykrobe-atlas-distance-deployment",
+		"labels": {
+			"app": "mykrobe-atlas-distance"
+		},
+    	"namespace": "analysis"
+	},
+	"spec": {
+		"selector": {
+			"matchLabels": {
+				"app": "mykrobe-atlas-distance"
+			}
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "mykrobe-atlas-distance"
+				}
+			},
+			"spec": {
+				"volumes": [
+					{
+						"name": "mykrobe-atlas-distance-data",
+						"persistentVolumeClaim": {
+							"claimName": "mykrobe-atlas-distance-data"
+						}
+					}
+				],
+				"containers": [
+					{
+						"name": "mykrobe-atlas-distance",
+						"image": "iqballab/distance-service:latest",
+						"ports": [
+							{
+								"containerPort": 8080
+							}
+						],
+						"volumeMounts": [
+							{
+								"mountPath": "/data/databases",
+								"name": "mykrobe-atlas-distance-data"
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}
