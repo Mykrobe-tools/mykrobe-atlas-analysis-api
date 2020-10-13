@@ -27,8 +27,8 @@ MAPPER = MappingsManager()
 BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
 BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
 BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
-REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/data/NC_000962.3.fasta")
-GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/data/NC_000962.3.gb")
+REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/config/NC_000962.3.fasta")
+GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/config/NC_000962.3.gb")
 
 
 def make_celery(app):
