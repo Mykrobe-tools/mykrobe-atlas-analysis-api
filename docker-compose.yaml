@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  api:
+    image: analysis-api
+    ports:
+      - "8080:80"
+    links:
+      - redis
+  worker:
+    image: analysis-worker
+    links:
+      - redis
+  redis:
+    image: redis
