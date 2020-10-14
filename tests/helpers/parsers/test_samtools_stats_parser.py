@@ -19,4 +19,7 @@ def test_get_values(content):
     parser = SamtoolsStatsParser(content)
     values = parser.get(['key1', 'key3'])
 
-    assert values == ['value1', 'value3']
+    assert values == {
+        'key1': 'value1',
+        'key3': 'value3'
+    }

@@ -3,7 +3,7 @@ class SamtoolsStatsParser:
         self.stats = stats_raw.decode().split('\n')
 
     def get(self, keys):
-        values = []
+        values = {}
 
         for line in self.stats:
             if not line.startswith('SN'):
@@ -12,6 +12,6 @@ class SamtoolsStatsParser:
             cols = line.split('\t')
             stat = cols[1][:-1]
             if stat in keys:
-                values.append(cols[2])
+                values[stat] = cols[2]
 
         return values
