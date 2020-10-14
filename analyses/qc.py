@@ -16,13 +16,6 @@ class QCTaskManager:
         """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
         """
 
-        # Must index the ref first
-        # Docs: http://bio-bwa.sourceforge.net/bwa.shtml
-        subprocess.check_output([
-            "./bwa", "index",
-            self.reference_filepath
-        ])
-
         return subprocess.check_output([
             "./bwa", "mem",
             self.reference_filepath, file
@@ -38,7 +31,7 @@ class QCTaskManager:
             "./samtools", "stats"
         ], input=self.sam)
 
-        parser = SamtoolsStatsParser(stats_raw=self.samstats)
+        parser = SamtoolsStatsParser(self.samstats)
         values = parser.get(keys)
 
         return QcResult(coverage=values[0])

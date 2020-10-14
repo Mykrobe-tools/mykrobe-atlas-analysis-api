@@ -5,6 +5,7 @@ from flask import request
 
 from analyses.qc import QCTaskManager
 from analyses.tracking import qc_result_api_instance
+from helpers.init_scripts.bwa_index_ref import bwa_index_ref
 
 try:
     from StringIO import StringIO
@@ -59,6 +60,8 @@ app.config.update(
     CELERY_BROKER_URL=CELERY_BROKER_URL, CELERY_RESULT_BACKEND=CELERY_BROKER_URL
 )
 celery = make_celery(app)
+
+bwa_index_ref(REFERENCE_FILEPATH)
 
 
 import json

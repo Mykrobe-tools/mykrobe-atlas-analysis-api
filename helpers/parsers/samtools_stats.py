@@ -1,11 +1,6 @@
 class SamtoolsStatsParser:
-    def __init__(self, stats_file=None, stats_raw=None):
-        assert stats_file or stats_raw, 'Either a file or a byte sequence must be provided'
-
-        if stats_file:
-            self.stats = stats_file
-        else:
-            self.stats = stats_raw.decode().split('\n')
+    def __init__(self, stats_raw):
+        self.stats = stats_raw.decode().split('\n')
 
     def get(self, keys):
         values = []
