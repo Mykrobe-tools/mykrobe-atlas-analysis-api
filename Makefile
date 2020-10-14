@@ -11,3 +11,6 @@ up:
 
 debug:
 	docker run --rm -it analysis-$(svc) bash
+
+test:
+	python -m pytest tests/

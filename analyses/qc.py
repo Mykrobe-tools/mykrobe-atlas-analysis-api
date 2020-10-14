@@ -1,23 +1,16 @@
-import os
 import subprocess
 
-from helpers import load_json
+from tracking_client import QcResult
+
+from helpers.parsers.samtools_stats import SamtoolsStatsParser
 
 
 class QCTaskManager:
     def __init__(self, reference_filepath, outdir):
         self.outdir = outdir
         self.reference_filepath = reference_filepath
-
-    def qc_filepath(self, sample_id):
-        return os.path.join(
-            self.outdir, "{sample_id}_qc.json".format(sample_id=sample_id)
-        )
-
-    def sam_filepath(self, sample_id):
-        return os.path.join(
-            self.outdir, "{sample_id}.sam".format(sample_id=sample_id)
-        )
+        self.sam = b''
+        self.samstats = b''
 
     def map_reads(self, file, sample_id):
         """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
@@ -30,36 +23,22 @@ class QCTaskManager:
             self.reference_filepath
         ])
 
-        with open(self.sam_filepath(sample_id), 'w') as outfile:
-            subprocess.check_call([
-                "./bwa", "mem",
-                self.reference_filepath, file
-            ], stdout=outfile)
+        return subprocess.check_output([
+            "./bwa", "mem",
+            self.reference_filepath, file
+        ])
 
     def run_qc(self, file, sample_id):
         """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/samtools_qc.py#L28
         """
-        self.map_reads(file, sample_id)
+        keys = ['bases mapped (cigar)']
 
-        outfile = self.qc_filepath(sample_id)
-        subprocess.check_output([
-            "./samtools",
-            # "predict",
-            # sample_id,
-            # "tb",
-            # "-1",
-            # file,
-            # "--format",
-            # "json",
-            # "--tmp",
-            # self.outdir,
-            # "--skeleton_dir",
-            # self.skeleton_dir,
-            # "--output",
-            # outfile,
-        ])
+        self.sam = self.map_reads(file, sample_id)
+        self.samstats = subprocess.check_output([
+            "./samtools", "stats"
+        ], input=self.sam)
 
-        # Load the output
-        results = load_json(outfile)
+        parser = SamtoolsStatsParser(stats_raw=self.samstats)
+        values = parser.get(keys)
 
-        return results
+        return QcResult(coverage=values[0])

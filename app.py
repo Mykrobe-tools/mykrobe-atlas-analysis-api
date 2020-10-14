@@ -3,6 +3,9 @@ from urllib.parse import urljoin
 from flask import Flask
 from flask import request
 
+from analyses.qc import QCTaskManager
+from analyses.tracking import qc_result_api_instance
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -108,15 +111,22 @@ def genotype_task(file, sample_id, callback_url):
     # send_results("genotype", results, url)
 
 
+@celery.task()
+def qc_task(file, sample_id):
+    qc_result = QCTaskManager(REFERENCE_FILEPATH, DEFAULT_OUTDIR).run_qc(file, sample_id)
+    qc_result_api_instance.samples_id_qc_result_put(sample_id, qc_result)
+
+
 @app.route("/analyses", methods=["POST"])
 def analyse_new_sample():
     data = request.get_json()
     file = data.get("file", "")
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
-    res = predictor_task.delay(file, sample_id, callback_url)
-    res = genotype_task.delay(file, sample_id, callback_url)
-    res = bigsi_build_task.delay(file, sample_id)
+    # res = predictor_task.delay(file, sample_id, callback_url)
+    # res = genotype_task.delay(file, sample_id, callback_url)
+    # res = bigsi_build_task.delay(file, sample_id)
+    res = qc_task.delay(file, sample_id)
     MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
