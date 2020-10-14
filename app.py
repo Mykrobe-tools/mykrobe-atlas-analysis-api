@@ -1,11 +1,11 @@
 import os
 from urllib.parse import urljoin
+
 from flask import Flask
 from flask import request
 
 from analyses.qc import QCTaskManager
 from analyses.tracking import qc_result_api_instance
-from helpers.init_scripts.bwa_index_ref import bwa_index_ref
 
 try:
     from StringIO import StringIO
@@ -61,8 +61,6 @@ app.config.update(
 )
 celery = make_celery(app)
 
-bwa_index_ref(REFERENCE_FILEPATH)
-
 
 import json
 import requests
@@ -116,7 +114,7 @@ def genotype_task(file, sample_id, callback_url):
 
 @celery.task()
 def qc_task(file, sample_id):
-    qc_result = QCTaskManager(REFERENCE_FILEPATH, DEFAULT_OUTDIR).run_qc(file, sample_id)
+    qc_result = QCTaskManager(REFERENCE_FILEPATH, DEFAULT_OUTDIR).run_qc(file)
     qc_result_api_instance.samples_id_qc_result_put(sample_id, qc_result)
 
 
