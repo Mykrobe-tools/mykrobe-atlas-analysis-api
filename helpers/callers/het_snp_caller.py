@@ -29,21 +29,6 @@ class HetSnpCaller:
         self.max_allele_freq = max_allele_freq
 
     @classmethod
-    def _run_mpileup(cls, bam, ref, outfile):
-        cmd = [
-            "./samtools", "mpileup",
-            "-f", ref, "-"
-        ]
-
-        with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as p:
-            out, err = p.communicate(input=bam)
-            if err:
-                logger.debug(err)
-            else:
-                with open(outfile, 'wb') as of:
-                    of.write(out)
-
-    @classmethod
     def _vcf_line_is_snp_and_or_het(
         cls, vcf_line, min_total_depth, min_second_depth, max_allele_freq
     ):
@@ -93,18 +78,24 @@ class HetSnpCaller:
     @classmethod
     def _filter_vcf_and_count_snps(
         cls,
-        vcf_file_in,
-        vcf_file_out,
+        bam, ref,
         min_total_depth,
         min_second_depth,
         max_allele_freq,
     ):
         results = {}
 
-        with open(vcf_file_in) as f_in, open(vcf_file_out, "w") as f_out:
-            for line in f_in:
+        cmd = [
+            "./samtools", "mpileup", "--skip-indels", "-d", "500", "-t", "INFO/AD,INFO/ADF,INFO/ADR", "-C50", "-uv",
+            "-f", ref, "-"
+        ]
+
+        with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True) as p:
+            p.stdin.write(bam.decode())
+            p.stdin.close()
+
+            for line in p.stdout:
                 if line.startswith("#"):
-                    print(line, end="", file=f_out)
                     continue
 
                 chrom, is_snp, is_het = HetSnpCaller._vcf_line_is_snp_and_or_het(
@@ -118,82 +109,35 @@ class HetSnpCaller:
                     results[chrom]["snps"] += 1
                 if is_het:
                     results[chrom]["hets"] += 1
-                    print(line, end="", file=f_out)
 
         return results
 
     @classmethod
-    def _write_reports(cls, snp_data, contig_lengths, summary_out, per_contig_out):
+    def _write_reports(cls, snp_data, contig_lengths):
         totals = {x: 0 for x in ["length", "positions", "snps", "hets"]}
 
-        with open(per_contig_out, "w") as f:
-            print(
-                "Contig",
-                "Length",
-                "Positions_mapped",
-                "SNPs",
-                "Het_SNPs",
-                sep="\t",
-                file=f,
-            )
+        for contig in sorted(contig_lengths):
+            totals["length"] += contig_lengths[contig]
 
-            for contig in sorted(contig_lengths):
-                totals["length"] += contig_lengths[contig]
+            if contig in snp_data:
+                for key, number in snp_data[contig].items():
+                    totals[key] += number
 
-                if contig in snp_data:
-                    for key, number in snp_data[contig].items():
-                        totals[key] += number
+        if totals["snps"] > 0:
+            percent_snps = round(100 * totals["hets"] / totals["snps"], 2)
+        else:
+            percent_snps = 0
 
-                    print(
-                        contig,
-                        contig_lengths[contig],
-                        snp_data[contig]["positions"],
-                        snp_data[contig]["snps"],
-                        snp_data[contig]["hets"],
-                        sep="\t",
-                        file=f,
-                    )
-                else:
-                    print(contig, 0, 0, 0, 0, sep="\t", file=f)
-
-        with open(summary_out, "w") as f:
-            if totals["snps"] > 0:
-                percent_snps = round(100 * totals["hets"] / totals["snps"], 2)
-            else:
-                percent_snps = 0
-            print(
-                "Total_length",
-                "Positions_used",
-                "Total_SNPs",
-                "Het_SNPs",
-                "Percent_SNPs_are_het",
-                sep="\t",
-                file=f,
-            )
-            print(
-                totals["length"],
-                totals["positions"],
-                totals["snps"],
-                totals["hets"],
-                percent_snps,
-                sep="\t",
-                file=f,
-            )
+        return totals["hets"]
 
     def run(self):
-        unfiltered_vcf = self.outprefix + ".unfiltered.vcf"
-        filtered_vcf = self.outprefix + ".het_calls.vcf"
         ref_lengths = {}
         pyfastaq.tasks.lengths_from_fai(self.ref_fasta + ".fai", ref_lengths)
-        HetSnpCaller._run_mpileup(self.bam, self.ref_fasta, unfiltered_vcf)
         snp_data = HetSnpCaller._filter_vcf_and_count_snps(
-            unfiltered_vcf,
-            filtered_vcf,
+            self.bam, self.ref_fasta,
             self.min_total_depth,
             self.min_second_depth,
             self.max_allele_freq,
         )
-        os.unlink(unfiltered_vcf)
-        summary_tsv = self.outprefix + ".summary.tsv"
-        per_contig_tsv = self.outprefix + ".per_contig.tsv"
-        HetSnpCaller._write_reports(snp_data, ref_lengths, summary_tsv, per_contig_tsv)
+
+        return HetSnpCaller._write_reports(snp_data, ref_lengths)
