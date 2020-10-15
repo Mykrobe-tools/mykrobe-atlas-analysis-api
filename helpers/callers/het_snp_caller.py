@@ -1,8 +1,11 @@
+import logging
 import os
 import re
 import subprocess
 
 import pyfastaq
+
+logger = logging.getLogger(__name__)
 
 adf_regex = re.compile(r"""[\t;]ADF=(?P<adf>[0-9,]+)[\t;]""")
 adr_regex = re.compile(r"""[\t;]ADR=(?P<adr>[0-9,]+)[\t;]""")
@@ -19,7 +22,7 @@ class HetSnpCaller:
         max_allele_freq=0.9,
     ):
         self.ref_fasta = os.path.abspath(ref_fasta)
-        self.bam = os.path.abspath(sorted_bam)
+        self.bam = sorted_bam
         self.outprefix = os.path.abspath(outprefix)
         self.min_total_depth = min_total_depth
         self.min_second_depth = min_second_depth
@@ -27,18 +30,18 @@ class HetSnpCaller:
 
     @classmethod
     def _run_mpileup(cls, bam, ref, outfile):
-        cmd = " ".join(
-            [
-                "samtools mpileup --skip-indels -d 500 -t INFO/AD,INFO/ADF,INFO/ADR -C50 -uv",
-                "-f",
-                ref,
-                bam,
-                ">",
-                outfile,
-            ]
-        )
+        cmd = [
+            "./samtools", "mpileup",
+            "-f", ref, "-"
+        ]
 
-        subprocess.run(cmd)
+        with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as p:
+            out, err = p.communicate(input=bam)
+            if err:
+                logger.debug(err)
+            else:
+                with open(outfile, 'wb') as of:
+                    of.write(out)
 
     @classmethod
     def _vcf_line_is_snp_and_or_het(

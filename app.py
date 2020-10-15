@@ -130,7 +130,7 @@ def analyse_new_sample():
     res = predictor_task.delay(file, sample_id, callback_url)
     res = genotype_task.delay(file, sample_id, callback_url)
     res = bigsi_build_task.delay(file, sample_id)
-    qc_task.delay(file, sample_id)
+    res = qc_task.delay(file, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200

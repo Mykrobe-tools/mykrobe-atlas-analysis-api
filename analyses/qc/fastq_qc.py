@@ -3,6 +3,7 @@ import subprocess
 
 from tracking_client import QcResult
 
+from helpers.callers import het_snp_caller
 from helpers.grepers import grep_samstats
 
 COVERAGE_THRESHOLD = os.getenv('COVERAGE_THRESHOLD', 15)
@@ -38,6 +39,11 @@ def get_alignment_stats(infile_path, reference_filepath, keys):
     """
 
     sam = map_reads(infile_path, reference_filepath)
+
+    hsc = het_snp_caller.HetSnpCaller(
+        sam, reference_filepath, os.path.join(".", "het_snps")
+    )
+    hsc.run()
 
     with subprocess.Popen([
         "./samtools", "stats"
