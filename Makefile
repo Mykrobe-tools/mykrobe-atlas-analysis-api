@@ -6,7 +6,7 @@ worker:
 
 build: api worker
 
-up:
+compose:
 	docker-compose up
 
 test:

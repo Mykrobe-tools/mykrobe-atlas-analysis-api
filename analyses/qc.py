@@ -30,12 +30,17 @@ class QCTaskManager:
         key = 'bases mapped (cigar)'
 
         sam = self.map_reads(file)
-        samstats = subprocess.check_output([
-            "./samtools", "stats"
-        ], input=sam)
 
-        parser = SamtoolsStatsParser(samstats)
-        return parser.get([key])[key]
+        with subprocess.Popen([
+            "./samtools", "stats"
+        ], stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True) as samstats_proc:
+            # Doing this instead of proc.communicate() because the latter waits for all output to be written out,
+            # while we want to process each line as soon as they're out.
+            samstats_proc.stdin.write(sam.decode())
+            samstats_proc.stdin.close()
+
+            parser = SamtoolsStatsParser(samstats_proc.stdout)
+            return parser.get([key])[key]
 
     def run_qc(self, file):
         """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/samtools_qc.py#L28
