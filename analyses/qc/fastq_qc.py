@@ -3,7 +3,7 @@ import subprocess
 
 from tracking_client import QcResult
 
-from helpers.grepers.samtools_stats import SamtoolsStatsGreper
+from helpers.grepers import grep_samstats
 
 COVERAGE_THRESHOLD = os.getenv('COVERAGE_THRESHOLD', 15)
 NUM_TB_BASE_PAIRS = os.getenv('NUM_TB_BASE_PAIRS', 4411532)
@@ -47,13 +47,12 @@ def get_alignment_stats(infile_path, reference_filepath, keys):
         samstats_proc.stdin.write(sam.decode())
         samstats_proc.stdin.close()
 
-        greper = SamtoolsStatsGreper(samstats_proc.stdout)
-        return greper.grep(keys)
+        return grep_samstats(samstats_proc.stdout, keys)
 
 
 def calculate_coverage(infile, ref):
-    key = 'bases mapped (cigar)'
-    samtools_stats = get_alignment_stats(infile, ref, [key])
-    bases_mapped_cigar = int(samtools_stats[key])
+    keys = ['bases mapped (cigar)']
+    samtools_stats = get_alignment_stats(infile, ref, keys)
+    bases_mapped_cigar = int(samtools_stats[keys[0]])
 
     return bases_mapped_cigar / NUM_TB_BASE_PAIRS
