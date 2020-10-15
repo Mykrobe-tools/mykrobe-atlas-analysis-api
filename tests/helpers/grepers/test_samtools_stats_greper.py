@@ -1,6 +1,6 @@
 from pytest import fixture
 
-from helpers.parsers.samtools_stats import SamtoolsStatsParser
+from helpers.grepers.samtools_stats import SamtoolsStatsGreper
 
 
 @fixture
@@ -16,8 +16,8 @@ random\tline
 
 
 def test_get_values(content):
-    parser = SamtoolsStatsParser(content.splitlines())
-    values = parser.get(['key1', 'key3'])
+    greper = SamtoolsStatsGreper(content.splitlines())
+    values = greper.grep(['key1', 'key3'])
 
     assert values == {
         'key1': 'value1',
@@ -25,9 +25,9 @@ def test_get_values(content):
     }
 
 
-def test_parser_exist_as_soon_as_all_keys_are_gathered(content):
-    parser = SamtoolsStatsParser(content.splitlines())
-    values = parser.get(['key1'])
+def test_greper_exists_as_soon_as_all_keys_are_gathered(content):
+    greper = SamtoolsStatsGreper(content.splitlines())
+    values = greper.grep(['key1'])
 
     assert values == {
         'key1': 'value1'

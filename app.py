@@ -4,8 +4,8 @@ from urllib.parse import urljoin
 from flask import Flask
 from flask import request
 
-from analyses.qc import QCTaskManager
-from analyses.tracking import qc_result_api_instance
+from analyses.qc import run_qc
+from analyses.tracking import send_qc_result
 
 try:
     from StringIO import StringIO
@@ -113,9 +113,11 @@ def genotype_task(file, sample_id, callback_url):
 
 
 @celery.task()
-def qc_task(file, sample_id):
-    qc_result = QCTaskManager(REFERENCE_FILEPATH, DEFAULT_OUTDIR).run_qc(file)
-    qc_result_api_instance.samples_id_qc_result_put(sample_id, qc_result)
+def qc_task(infile_path, sample_id):
+    qc_result = run_qc(infile_path, REFERENCE_FILEPATH)
+    send_qc_result(qc_result, sample_id)
+
+    # TODO: Notify users of errors from task
 
 
 @app.route("/analyses", methods=["POST"])
@@ -124,10 +126,12 @@ def analyse_new_sample():
     file = data.get("file", "")
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
+
     res = predictor_task.delay(file, sample_id, callback_url)
     res = genotype_task.delay(file, sample_id, callback_url)
     res = bigsi_build_task.delay(file, sample_id)
-    res = qc_task.delay(file, sample_id)
+    qc_task.delay(file, sample_id)
+
     MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 

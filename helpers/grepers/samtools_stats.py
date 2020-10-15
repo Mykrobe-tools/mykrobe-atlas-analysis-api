@@ -1,11 +1,11 @@
-class SamtoolsStatsParser:
-    def __init__(self, stats_raw):
-        self.stats = stats_raw
+class SamtoolsStatsGreper:
+    def __init__(self, stats_pipe):
+        self.stats_pipe = stats_pipe
 
-    def get(self, keys):
+    def grep(self, keys):
         values = {}
 
-        for line in self.stats:
+        for line in self.stats_pipe:
             if not keys:
                 break
 
