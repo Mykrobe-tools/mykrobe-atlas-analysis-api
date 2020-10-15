@@ -114,7 +114,7 @@ def genotype_task(file, sample_id, callback_url):
 
 @celery.task()
 def qc_task(infile_path, sample_id):
-    qc_result = run_qc(infile_path, REFERENCE_FILEPATH)
+    qc_result = run_qc(infile_path, sample_id, REFERENCE_FILEPATH, DEFAULT_OUTDIR)
     send_qc_result(qc_result, sample_id)
 
     # TODO: Notify users of errors from task
@@ -127,9 +127,9 @@ def analyse_new_sample():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
 
-    res = predictor_task.delay(file, sample_id, callback_url)
-    res = genotype_task.delay(file, sample_id, callback_url)
-    res = bigsi_build_task.delay(file, sample_id)
+    # res = predictor_task.delay(file, sample_id, callback_url)
+    # res = genotype_task.delay(file, sample_id, callback_url)
+    # res = bigsi_build_task.delay(file, sample_id)
     res = qc_task.delay(file, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)

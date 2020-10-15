@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 
 from tracking_client import QcResult
 
@@ -11,12 +12,13 @@ NUM_TB_BASE_PAIRS = os.getenv('NUM_TB_BASE_PAIRS', 4411532)
 MAX_HET_SNPS = 100000
 
 
-def fastq_qc(infile_path, ref_path):
-    sam = map_reads(infile_path, ref_path)
+def fastq_qc(infile_path, sample_id, ref_path, outdir):
+    sam_path = Path(outdir) / f'{sample_id}.sam'
+    map_reads(infile_path, ref_path, sam_path)
 
-    coverage = calculate_coverage(sam)
+    coverage = calculate_coverage(sam_path)
 
-    number_of_het_snps = get_number_of_het_snps(sam, ref_path)
+    number_of_het_snps = get_number_of_het_snps(sam_path, ref_path, outdir)
 
     decision = 'passed'
     if coverage <= COVERAGE_THRESHOLD or number_of_het_snps > MAX_HET_SNPS:
@@ -29,41 +31,37 @@ def fastq_qc(infile_path, ref_path):
     )
 
 
-def map_reads(infile_path, reference_filepath):
+def map_reads(infile_path, reference_filepath, outpath):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
     """
 
-    return subprocess.check_output([
-        "./bwa", "mem",
-        reference_filepath, infile_path
-    ])
+    with open(outpath, 'wb') as outfile:
+        subprocess.run([
+            "./bwa", "mem",
+            reference_filepath, infile_path
+        ], stdout=outfile)
 
 
-def get_number_of_het_snps(sam, ref_path):
+def get_number_of_het_snps(sam_path, ref_path, outdir):
     hsc = het_snp_caller.HetSnpCaller(
-        sam, ref_path, os.path.join(".", "het_snps")
+        sam_path, ref_path, os.path.join(outdir, "het_snps")
     )
     return hsc.run()
 
 
-def get_alignment_stats(sam, keys):
+def get_alignment_stats(sam_path, keys):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/samtools_qc.py#L28
     """
 
     with subprocess.Popen([
-        "./samtools", "stats"
-    ], stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True) as samstats_proc:
-        # Doing this instead of proc.communicate() because the latter waits for all output to be written out,
-        # while we want to process each line as soon as they're out.
-        samstats_proc.stdin.write(sam.decode())
-        samstats_proc.stdin.close()
-
+        "./samtools", "stats", sam_path
+    ], stdout=subprocess.PIPE, universal_newlines=True) as samstats_proc:
         return grep_samstats(samstats_proc.stdout, keys)
 
 
-def calculate_coverage(sam):
+def calculate_coverage(sam_path):
     keys = ['bases mapped (cigar)']
-    samtools_stats = get_alignment_stats(sam, keys)
+    samtools_stats = get_alignment_stats(sam_path, keys)
     bases_mapped_cigar = int(samtools_stats[keys[0]])
 
     return bases_mapped_cigar / NUM_TB_BASE_PAIRS

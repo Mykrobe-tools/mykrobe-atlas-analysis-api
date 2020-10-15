@@ -1,3 +1,8 @@
+# Copied from Clockwork
+# Changes:
+# - Remove writing out summary_tsv, per_contig_tsv, filtered_vcf. Instead, grab the number of het snps and return immediately.
+# - Remove writing out mpileup result to unfiltered_vcf. Instead, pipe it directly to the het filter.
+
 import logging
 import os
 import re
@@ -87,13 +92,10 @@ class HetSnpCaller:
 
         cmd = [
             "./samtools", "mpileup", "--skip-indels", "-d", "500", "-t", "INFO/AD,INFO/ADF,INFO/ADR", "-C50", "-uv",
-            "-f", ref, "-"
+            "-f", ref, bam
         ]
 
-        with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True) as p:
-            p.stdin.write(bam.decode())
-            p.stdin.close()
-
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True) as p:
             for line in p.stdout:
                 if line.startswith("#"):
                     continue

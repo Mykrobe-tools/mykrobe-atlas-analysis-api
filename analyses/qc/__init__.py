@@ -11,8 +11,8 @@ def is_fastq(infile_path):
     return infile_path.endswith('.fastq')  # TODO: Find a better way
 
 
-def run_qc(infile_path, ref_path):
+def run_qc(infile_path, sample_id, ref_path, outdir):
     if is_fastq(infile_path):
-        return fastq_qc(infile_path, ref_path)
+        return fastq_qc(infile_path, sample_id, ref_path, outdir)
     else:
         raise UnsupportedSampleFormat(f'only {"".join(SUPPORTED_FORMATS)} files are supported')
