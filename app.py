@@ -127,9 +127,9 @@ def analyse_new_sample():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
 
-    # res = predictor_task.delay(file, sample_id, callback_url)
-    # res = genotype_task.delay(file, sample_id, callback_url)
-    # res = bigsi_build_task.delay(file, sample_id)
+    res = predictor_task.delay(file, sample_id, callback_url)
+    res = genotype_task.delay(file, sample_id, callback_url)
+    res = bigsi_build_task.delay(file, sample_id)
     res = qc_task.delay(file, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)
