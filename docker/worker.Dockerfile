@@ -28,8 +28,10 @@ RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
 RUN tar xf bwa-0.7.15.tar.bz2 && cd bwa-0.7.15 && make
 RUN cp -s bwa-0.7.15/bwa .
 
+# Assuming all indices are there as well
+ENV REFERENCE_FILEPATH=data/NC_000962.3.fasta
+
 RUN apt clean
 WORKDIR /usr/src/app
-RUN chmod +x docker/worker-entrypoint.sh
-ENTRYPOINT ["docker/worker-entrypoint.sh"]
+COPY data data
 CMD celery -A app.celery worker -O fair -l DEBUG --concurrency=4 --uid=nobody

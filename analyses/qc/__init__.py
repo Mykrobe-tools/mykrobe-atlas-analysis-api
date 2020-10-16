@@ -8,7 +8,9 @@ class UnsupportedSampleFormat(Exception):
 
 
 def is_fastq(infile_path):
-    return infile_path.endswith('.fastq')  # TODO: Find a better way
+    # TODO: Find a better way
+    return infile_path.endswith('.fastq') \
+        or infile_path.endswith('.fastq.gz')
 
 
 def run_qc(infile_path, sample_id, ref_path, outdir):

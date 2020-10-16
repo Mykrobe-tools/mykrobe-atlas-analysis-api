@@ -9,7 +9,7 @@ from helpers.grepers import grep_samstats
 
 COVERAGE_THRESHOLD = os.getenv('COVERAGE_THRESHOLD', 15)
 NUM_TB_BASE_PAIRS = os.getenv('NUM_TB_BASE_PAIRS', 4411532)
-MAX_HET_SNPS = 100000
+MAX_HET_SNPS = os.getenv('MAX_HET_SNPS', 100000)
 
 
 def fastq_qc(infile_path, sample_id, ref_path, outdir):
@@ -29,15 +29,26 @@ def fastq_qc(infile_path, sample_id, ref_path, outdir):
     )
 
 
-def map_reads(infile_path, sample_id, reference_filepath, outdir):
+def map_reads(infile_path, sample_id, reference_filepath, outdir, read_group=None):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
     """
     outpath = Path(outdir) / f'{sample_id}.sam'
 
+    # "LB:LIB" is needed, otherwise samtools rmdup segfaults when map_reads_set() is used
+    R_option = (
+        "" if read_group is None
+        else r"""-R '@RG\tLB:LIB\tID:"""
+             + read_group[0]
+             + r"""\tSM:"""
+             + read_group[1]
+             + "'"
+    )
+
     with open(outpath, 'wb') as outfile:
         subprocess.run([
-            "./bwa", "mem",
-            reference_filepath, infile_path
+            "./bwa", "mem", "-M",
+            R_option,
+            reference_filepath, infile_path,
         ], stdout=outfile)
 
     return outpath
