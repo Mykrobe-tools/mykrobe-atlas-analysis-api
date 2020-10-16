@@ -1,3 +1,15 @@
 venv
 __pycache__
 mykrobe
+.hypothesis
+.pytest_cache
+docker-compose.yaml
+*.Dockerfile
+/docs/
+/k8/
+/tests/
+.*ignore
+cloudbuild*
+Makefile
+*.md
+test_requirements.txt

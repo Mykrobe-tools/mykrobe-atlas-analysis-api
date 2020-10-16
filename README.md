@@ -1,5 +1,15 @@
 # A simple API to trigger mykrobe-atlas-cli analyses
 
+## Local development setup
+
+```
+make api
+make worker
+make up
+# See Makefile for details
+# API listens at localhost:8080
+```
+
 working dir /src/api
 
 ```
