@@ -15,7 +15,7 @@ MAX_HET_SNPS = os.getenv('MAX_HET_SNPS', 100000)
 def fastq_qc(infile_path, sample_id, ref_path, outdir):
     sam_path = map_reads(infile_path, sample_id, ref_path, outdir)
 
-    coverage = calculate_coverage(sam_path)
+    coverage = calculate_coverage(sam_path, ref_path)
     number_of_het_snps = calculate_het_snps(sam_path, ref_path, outdir)
 
     decision = 'passed'
@@ -36,13 +36,13 @@ def calculate_het_snps(sam_path, ref_path, outdir):
     return hsc.run()
 
 
-def calculate_coverage(sam_path):
+def calculate_coverage(sam_path, ref_path):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/samtools_qc.py#L28
     """
     keys = ['bases mapped (cigar)']
 
     with subprocess.Popen([
-        "./samtools", "stats", sam_path
+        "./samtools", "stats", "-f", ref_path, sam_path
     ], stdout=subprocess.PIPE, universal_newlines=True) as samstats_proc:
         samtools_stats = grep_samstats(samstats_proc.stdout, keys)
 
