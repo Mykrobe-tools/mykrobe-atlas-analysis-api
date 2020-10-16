@@ -8,21 +8,19 @@ def map_reads(infile_path, sample_id, reference_filepath, outdir, read_group=Non
     outpath = Path(outdir) / f'{sample_id}.sam'
 
     # "LB:LIB" is needed, otherwise samtools rmdup segfaults when map_reads_set() is used
-    R_option = (
-        "" if read_group is None
-        else r"""-R '@RG\tLB:LIB\tID:"""
-             + read_group[0]
-             + r"""\tSM:"""
-             + read_group[1]
-             + "'"
-    )
+    R_option = [] if read_group is None else [
+        r"""-R '@RG\tLB:LIB\tID:"""
+        + read_group[0]
+        + r"""\tSM:"""
+        + read_group[1]
+        + "'"
+    ]
+
+    cmd = ["bwa", "mem", "-M"] + R_option + [reference_filepath, infile_path]
+    awk_cmd = ["awk", "/^@/ || !and($2,256)"]  # remove secondary alignments (but keep header)
 
     with open(outpath, 'wb') as outfile:
-        with subprocess.Popen([
-            "./bwa", "mem", "-M",
-            R_option,
-            reference_filepath, infile_path,
-        ], stdout=subprocess.PIPE):
-            subprocess.run(["awk", "'/^@/ || !and($2,256)'"], stdout=outfile)
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE):
+            subprocess.run(awk_cmd, stdout=outfile)
 
     return outpath

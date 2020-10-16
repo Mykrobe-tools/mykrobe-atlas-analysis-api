@@ -91,7 +91,7 @@ class HetSnpCaller:
         results = {}
 
         cmd = [
-            "./samtools", "mpileup", "--skip-indels", "-d", "500", "-t", "INFO/AD,INFO/ADF,INFO/ADR", "-C50", "-uv",
+            "samtools", "mpileup", "--skip-indels", "-d", "500", "-t", "INFO/AD,INFO/ADF,INFO/ADR", "-C50", "-uv",
             "-f", ref, bam
         ]
 
