@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 
-def map_reads(infile_path, sample_id, reference_filepath, outdir, read_group=None):
+def map_reads(infile_paths, sample_id, reference_filepath, outdir, read_group=None):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
     """
     outpath = Path(outdir) / f'{sample_id}.sam'
@@ -16,7 +16,7 @@ def map_reads(infile_path, sample_id, reference_filepath, outdir, read_group=Non
         + "'"
     ]
 
-    cmd = ["bwa", "mem", "-M"] + R_option + [reference_filepath, infile_path]
+    cmd = ["bwa", "mem", "-M"] + R_option + [reference_filepath] + infile_paths
     awk_cmd = ["awk", "/^@/ || !and($2,256)"]  # remove secondary alignments (but keep header)
 
     with open(outpath, 'wb') as outfile:

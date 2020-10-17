@@ -12,8 +12,8 @@ NUM_TB_BASE_PAIRS = os.getenv('NUM_TB_BASE_PAIRS', 4411532)
 MAX_HET_SNPS = os.getenv('MAX_HET_SNPS', 100000)
 
 
-def fastq_qc(infile_path, sample_id, ref_path, outdir):
-    sam_path = map_reads(infile_path, sample_id, ref_path, outdir)
+def fastq_qc(infile_paths, sample_id, ref_path, outdir):
+    sam_path = map_reads(infile_paths, sample_id, ref_path, outdir)
 
     coverage = calculate_coverage(sam_path, ref_path)
     number_of_het_snps = calculate_het_snps(sam_path, ref_path, outdir)
