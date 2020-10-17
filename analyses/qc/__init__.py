@@ -1,4 +1,5 @@
 from analyses.qc.fastq_qc import fastq_qc
+from config import REFERENCE_FILEPATH, DEFAULT_OUTDIR
 
 SUPPORTED_FORMATS = ['FASTQ']
 
@@ -13,7 +14,7 @@ def is_fastq(infile_path):
         or infile_path.endswith('.fastq.gz')
 
 
-def run_qc(infile_path, sample_id, ref_path, outdir):
+def run_qc(infile_path, sample_id, ref_path=REFERENCE_FILEPATH, outdir=DEFAULT_OUTDIR):
     if is_fastq(infile_path):
         return fastq_qc(infile_path, sample_id, ref_path, outdir)
     else:

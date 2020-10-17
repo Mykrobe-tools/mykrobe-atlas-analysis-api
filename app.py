@@ -1,4 +1,3 @@
-import os
 from urllib.parse import urljoin
 
 from flask import Flask
@@ -6,6 +5,8 @@ from flask import request
 
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
+from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
+    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH
 
 try:
     from StringIO import StringIO
@@ -19,20 +20,7 @@ from analyses import MappingsManager
 
 from celery import Celery
 
-
-REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://%s:6379" % REDIS_HOST)
-DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
-SKELETON_DIR = os.environ.get("SKELETON_DIR", "/config/")
-ATLAS_API = os.environ.get("ATLAS_API", "https://api-dev.mykro.be")
-TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
-BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
-BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
-BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
-REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/config/NC_000962.3.fasta")
-GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/config/NC_000962.3.gb")
 
 
 def make_celery(app):
@@ -94,7 +82,8 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 @celery.task()
 def bigsi_build_task(file, sample_id):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG)
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
+                                BIGSI_BUILD_CONFIG)
     bigsi_tm.build_bigsi(file, sample_id)
 
 
@@ -114,7 +103,7 @@ def genotype_task(file, sample_id, callback_url):
 
 @celery.task()
 def qc_task(infile_path, sample_id):
-    qc_result = run_qc(infile_path, sample_id, REFERENCE_FILEPATH, DEFAULT_OUTDIR)
+    qc_result = run_qc(infile_path, sample_id)
     send_qc_result(qc_result, sample_id)
 
     # TODO: Notify users of errors from task
