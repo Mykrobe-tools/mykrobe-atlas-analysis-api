@@ -28,9 +28,6 @@ RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
 RUN tar xf bwa-0.7.15.tar.bz2 && cd bwa-0.7.15 && make
 RUN ln -sf $(pwd)/bwa-0.7.15/bwa /usr/local/bin/
 
-# Assuming all indices are there as well
-ENV REFERENCE_FILEPATH=data/NC_000962.3.fasta
-
 RUN apt clean
 WORKDIR /usr/src/app
 COPY data data

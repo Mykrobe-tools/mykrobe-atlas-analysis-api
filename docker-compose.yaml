@@ -10,6 +10,8 @@ services:
   worker:
     image: analysis-worker
     command: celery -A app.celery worker -O fair -l DEBUG --concurrency=4
+    environment:
+      REFERENCE_FILEPATH: data/NC_000962.3.fasta
     links:
       - redis
   redis:
