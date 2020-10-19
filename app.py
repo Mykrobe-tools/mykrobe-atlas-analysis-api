@@ -81,22 +81,22 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(file, sample_id):
+def bigsi_build_task(files, sample_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
                                 BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_bigsi(file, sample_id)
+    bigsi_tm.build_bigsi(files, sample_id)
 
 
 @celery.task()
-def predictor_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(file, sample_id)
+def predictor_task(files, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(files, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
-def genotype_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(file, sample_id)
+def genotype_task(files, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(files, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
@@ -116,9 +116,9 @@ def analyse_new_sample():
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
 
-    res = predictor_task.delay(files[0], sample_id, callback_url)
-    res = genotype_task.delay(files[0], sample_id, callback_url)
-    res = bigsi_build_task.delay(files[0], sample_id)
+    res = predictor_task.delay(files, sample_id, callback_url)
+    res = genotype_task.delay(files, sample_id, callback_url)
+    res = bigsi_build_task.delay(files, sample_id)
     res = qc_task.delay(files, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)

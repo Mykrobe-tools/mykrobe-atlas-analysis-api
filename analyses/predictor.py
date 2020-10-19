@@ -18,7 +18,7 @@ class PredictorTaskManager:
             self.outdir, "{sample_id}_genotype.json".format(sample_id=sample_id)
         )
 
-    def run_predictor(self, file, sample_id):
+    def run_predictor(self, files, sample_id):
         outfile = self.predictor_filepath(sample_id)
         out = subprocess.check_output(
             [
@@ -27,7 +27,7 @@ class PredictorTaskManager:
                 sample_id,
                 "tb",
                 "-1",
-                file,
+            ] + files + [
                 "--format",
                 "json",
                 "--tmp",
@@ -42,7 +42,7 @@ class PredictorTaskManager:
         results = load_json(outfile)
         return results
 
-    def run_genotype(self, file, sample_id):
+    def run_genotype(self, files, sample_id):
         outfile = self.genotype_filepath(sample_id)
         out = subprocess.check_output(
             [
@@ -51,7 +51,7 @@ class PredictorTaskManager:
                 sample_id,
                 "data/tb-k21-probe-set-feb-09-2017.fasta.gz",
                 "-1",
-                file,
+            ] + files + [
                 "--tmp",
                 self.outdir,
                 "--skeleton_dir",
