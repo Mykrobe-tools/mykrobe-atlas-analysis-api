@@ -1,4 +1,3 @@
-import os
 from urllib.parse import urljoin
 
 from flask import Flask
@@ -6,6 +5,8 @@ from flask import request
 
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
+from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
+    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH
 
 try:
     from StringIO import StringIO
@@ -19,20 +20,7 @@ from analyses import MappingsManager
 
 from celery import Celery
 
-
-REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://%s:6379" % REDIS_HOST)
-DEFAULT_OUTDIR = os.environ.get("DEFAULT_OUTDIR", "./")
-SKELETON_DIR = os.environ.get("SKELETON_DIR", "/config/")
-ATLAS_API = os.environ.get("ATLAS_API", "https://api-dev.mykro.be")
-TB_TREE_PATH_V1 = os.environ.get("TB_TREE_PATH_V1", "data/tb_newick.txt")
 MAPPER = MappingsManager()
-BIGSI_URL = os.environ.get("BIGSI_URL", "mykrobe-atlas-bigsi-aggregator-api-service/api/v1")
-BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-small")
-BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
-REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/config/NC_000962.3.fasta")
-GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/config/NC_000962.3.gb")
 
 
 def make_celery(app):
@@ -93,28 +81,29 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(file, sample_id):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_bigsi(file, sample_id)
+def bigsi_build_task(files, sample_id):
+    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
+                                BIGSI_BUILD_CONFIG)
+    bigsi_tm.build_bigsi(files, sample_id)
 
 
 @celery.task()
-def predictor_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(file, sample_id)
+def predictor_task(files, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(files, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     send_results("predictor", results, url)
 
 
 @celery.task()
-def genotype_task(file, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(file, sample_id)
+def genotype_task(files, sample_id, callback_url):
+    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(files, sample_id)
     url = urljoin(ATLAS_API, callback_url)
     # send_results("genotype", results, url)
 
 
 @celery.task()
-def qc_task(infile_path, sample_id):
-    qc_result = run_qc(infile_path, sample_id, REFERENCE_FILEPATH, DEFAULT_OUTDIR)
+def qc_task(infile_paths, sample_id):
+    qc_result = run_qc(infile_paths, sample_id)
     send_qc_result(qc_result, sample_id)
 
     # TODO: Notify users of errors from task
@@ -123,14 +112,14 @@ def qc_task(infile_path, sample_id):
 @app.route("/analyses", methods=["POST"])
 def analyse_new_sample():
     data = request.get_json()
-    file = data.get("file", "")
+    files = data.get("files", [])
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
 
-    res = predictor_task.delay(file, sample_id, callback_url)
-    res = genotype_task.delay(file, sample_id, callback_url)
-    res = bigsi_build_task.delay(file, sample_id)
-    res = qc_task.delay(file, sample_id)
+    res = predictor_task.delay(files, sample_id, callback_url)
+    res = genotype_task.delay(files, sample_id, callback_url)
+    res = bigsi_build_task.delay(files, sample_id)
+    res = qc_task.delay(files, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200

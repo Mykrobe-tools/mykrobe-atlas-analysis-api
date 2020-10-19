@@ -1,16 +1,27 @@
 version: "3.8"
 
 services:
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+      args:
+        base_image: mykrobe-atlas-analysis-api_api
+    command: celery -A app.celery worker -O fair -l DEBUG --concurrency=4
+    environment:
+      REFERENCE_FILEPATH: data/NC_000962.3.fasta
+    links:
+      - redis
+
   api:
-    image: analysis-api
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
     ports:
       - "8080:80"
     links:
       - redis
-  worker:
-    image: analysis-worker
-    command: celery -A app.celery worker -O fair -l DEBUG --concurrency=4
-    links:
-      - redis
+
   redis:
     image: redis

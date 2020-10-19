@@ -1,3 +1,5 @@
+import itertools
+
 import requests
 import time
 import json
@@ -103,12 +105,14 @@ class BigsiTaskManager:
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'
         return self._query(query, search_url)
 
-    def build_bigsi(self, file, sample_id):
+    def build_bigsi(self, files, sample_id):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
         bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
         bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
         bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
+
+        files_with_flags = list(itertools.chain.from_iterable([("-1", f) for f in files]))
 
         build_ctx_cmd = [
                 "mccortex31",
@@ -120,8 +124,7 @@ class BigsiTaskManager:
                 sample_id,
                 "--fq-cutoff",
                 str(5),
-                "-1",
-                file,
+            ] + files_with_flags + [
                 uncleaned_ctx,
             ]
         logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))

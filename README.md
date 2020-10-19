@@ -5,7 +5,7 @@
 ```
 make api
 make worker
-make up
+make compose
 # See Makefile for details
 # API listens at localhost:8080
 ```
