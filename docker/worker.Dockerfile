@@ -9,11 +9,15 @@ RUN apt install -y --no-install-recommends git build-essential wget gawk
 ## Install Mykrobe atlas cli
 RUN apt install -y --no-install-recommends libssl-dev libffi-dev dnsutils libz-dev
 WORKDIR /usr/src/app
-RUN git clone --branch v0.8.2 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
+RUN git clone --branch v0.9.0 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
 WORKDIR mykrobe-predictor
 RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make
 RUN pip install -r requirements.txt && python setup.py install
 RUN ln -sf $(pwd)/mccortex/bin/mccortex31 /usr/local/bin/mccortex31
+
+## Install Mykrobe panel data
+RUN mykrobe panels update_metadata
+RUN mykrobe panels update_species all
 
 ## Install samtools
 RUN apt install -y --no-install-recommends libncurses-dev

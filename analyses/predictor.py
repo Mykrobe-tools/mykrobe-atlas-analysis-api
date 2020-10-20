@@ -47,11 +47,15 @@ class PredictorTaskManager:
         out = subprocess.check_output(
             [
                 "mykrobe",
-                "genotype",
+                "predict",
                 sample_id,
+                "custom",
+                "--custom_probe_set_path",
                 "data/tb-k21-probe-set-feb-09-2017.fasta.gz",
                 "-1",
             ] + files + [
+                "--format",
+                "json",
                 "--tmp",
                 self.outdir,
                 "--skeleton_dir",
