@@ -11,6 +11,8 @@ services:
     command: celery -A app.celery worker -O fair -l DEBUG --concurrency=4
     environment:
       REFERENCE_FILEPATH: data/NC_000962.3.fasta
+    volumes:
+    - ./uploads:/uploads:ro
     links:
       - redis
 

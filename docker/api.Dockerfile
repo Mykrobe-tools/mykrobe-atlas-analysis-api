@@ -1,7 +1,7 @@
-## Dependencies
-FROM python:3.6-slim-buster AS compile-image
+# Dependencies
+FROM python:3.6-slim-buster AS builder
 
-RUN apt-get update -y && apt-get install -y git build-essential
+RUN apt-get update && apt-get install -y --no-install-recommends git build-essential
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -11,10 +11,9 @@ WORKDIR /usr/src/app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-
-## App
+# App
 FROM python:3.6-slim-buster
-COPY --from=compile-image /opt/venv /opt/venv
+COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /usr/src/app
