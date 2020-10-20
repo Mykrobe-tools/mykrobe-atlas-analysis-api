@@ -24,15 +24,13 @@ RUN mykrobe panels update_species all
 
 # Build samtools
 WORKDIR /usr/src/app
-RUN wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2
-RUN tar xf samtools-1.3.1.tar.bz2 && cd samtools-1.3.1 && make
-RUN rm samtools-1.3.1.tar.bz2
+RUN wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 -P /tmp
+RUN tar xf /tmp/samtools-1.3.1.tar.bz2 -C . && cd samtools-1.3.1 && make
 
 # Build bwa
 WORKDIR /usr/src/app
-RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
-RUN tar xf bwa-0.7.15.tar.bz2 && cd bwa-0.7.15 && make
-RUN rm bwa-0.7.15.tar.bz2
+RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2 -P /tmp
+RUN tar xf /tmp/bwa-0.7.15.tar.bz2 -C . && cd bwa-0.7.15 && make
 
 # Python requirements
 WORKDIR /usr/src/app
