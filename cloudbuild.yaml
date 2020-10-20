@@ -83,6 +83,9 @@ steps:
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
     args: ["cloudbuild-deploy.sh"]
+
+timeout: 900s
+
 substitutions:
   _IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api
   _WORKER_IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api-worker
