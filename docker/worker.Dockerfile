@@ -19,7 +19,7 @@ RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mc
 WORKDIR /usr/src/app/mykrobe-predictor
 RUN pip install -r requirements.txt && python setup.py install
 
-# Download Mykrobe panel data
+# Download Mykrobe panel data to current directory
 RUN mykrobe panels update_metadata
 RUN mykrobe panels update_species all
 
