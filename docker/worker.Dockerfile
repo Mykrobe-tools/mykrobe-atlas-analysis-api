@@ -24,14 +24,12 @@ RUN mykrobe panels update_metadata
 RUN mykrobe panels update_species all
 
 # Build samtools
-WORKDIR /usr/src/app
-RUN wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 -P /tmp
-RUN tar xf /tmp/samtools-1.3.1.tar.bz2 -C . && cd samtools-1.3.1 && make
+WORKDIR /usr/src/app/mykrobe-predictor/mccortex/libs/samtools
+RUN make
 
 # Build bwa
-WORKDIR /usr/src/app
-RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2 -P /tmp
-RUN tar xf /tmp/bwa-0.7.15.tar.bz2 -C . && cd bwa-0.7.15 && make
+WORKDIR /usr/src/app/mykrobe-predictor/mccortex/libs/bwa
+RUN make
 
 # Python requirements
 WORKDIR /usr/src/app
@@ -50,10 +48,11 @@ RUN apt install -y --no-install-recommends gawk libssl-dev libffi-dev dnsutils l
 RUN apt clean
 
 # Make symbolic links
-WORKDIR /usr/src/app
-RUN ln -s $(pwd)/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/bin/
-RUN ln -s $(pwd)/samtools-1.3.1/samtools /usr/local/bin/
-RUN ln -s $(pwd)/bwa-0.7.15/bwa /usr/local/bin/
+WORKDIR /usr/src/app/mykrobe-predictor/mccortex
+RUN ln -s $(pwd)/bin/mccortex31 /usr/local/bin/
+RUN ln -s $(pwd)/libs/samtools/samtools /usr/local/bin/
+RUN ln -s $(pwd)/libs/bwa/bwa /usr/local/bin/
 
+WORKDIR /usr/src/app
 COPY . .
 CMD celery -A app.celery worker -O fair -l DEBUG --concurrency=4 --uid=nobody
