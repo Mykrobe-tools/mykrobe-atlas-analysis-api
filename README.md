@@ -3,8 +3,7 @@
 ## Local development setup
 
 ```
-make api
-make worker
+make build
 make compose
 # See Makefile for details
 # API listens at localhost:8080
