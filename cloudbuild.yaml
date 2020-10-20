@@ -60,7 +60,7 @@ steps:
 
   # Build and push worker image
   - name: "gcr.io/cloud-builders/docker"
-    args: [ "build", "--build-arg", "tag=$SHORT_SHA", "-t", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/worker.Dockerfile", "." ]
+    args: [ "build", "-t", "$_WORKER_IMAGE_REPOSITORY:$SHORT_SHA", "-f", "./docker/worker.Dockerfile", "." ]
     volumes:
       - name: "ssh"
         path: /root/.ssh

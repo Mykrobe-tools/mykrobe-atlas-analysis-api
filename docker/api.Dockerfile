@@ -1,4 +1,4 @@
-# Dependencies
+# Builder
 FROM python:3.6-slim-buster AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends git build-essential
@@ -11,7 +11,7 @@ WORKDIR /usr/src/app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# App
+# Runtime image
 FROM python:3.6-slim-buster
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
