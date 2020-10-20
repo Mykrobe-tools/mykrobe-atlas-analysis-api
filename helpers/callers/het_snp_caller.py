@@ -41,7 +41,7 @@ class HetSnpCaller:
         fields = vcf_line.rstrip().split("\t")
 
         if "," not in fields[4]:
-            return (fields[0], False, False)
+            return fields[0], False, False
 
         adf_search = adf_regex.search(fields[7])
         adr_search = adr_regex.search(fields[7])
@@ -55,11 +55,11 @@ class HetSnpCaller:
 
         adf_sum = sum(adf_list)
         if adf_sum < min_total_depth:
-            return (fields[0], False, False)
+            return fields[0], False, False
 
         adr_sum = sum(adr_list)
         if adr_sum < min_total_depth:
-            return (fields[0], False, False)
+            return fields[0], False, False
 
         adr_max = max(adr_list)
         adf_max = max(adf_list)
@@ -73,12 +73,12 @@ class HetSnpCaller:
                 and adr >= min_second_depth
                 and adr / adr_sum <= max_allele_freq
             ):
-                return (fields[0], True, True)
+                return fields[0], True, True
 
         if adf_list[0] < adf_max and adr_list[0] < adr_max:
-            return (fields[0], True, False)
+            return fields[0], True, False
         else:
-            return (fields[0], False, False)
+            return fields[0], False, False
 
     @classmethod
     def _filter_vcf_and_count_snps(
