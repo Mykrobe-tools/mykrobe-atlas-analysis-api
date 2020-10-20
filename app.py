@@ -95,13 +95,6 @@ def predictor_task(files, sample_id, callback_url):
 
 
 @celery.task()
-def genotype_task(files, sample_id, callback_url):
-    results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_genotype(files, sample_id)
-    url = urljoin(ATLAS_API, callback_url)
-    # send_results("genotype", results, url)
-
-
-@celery.task()
 def qc_task(infile_paths, sample_id):
     qc_result = run_qc(infile_paths, sample_id)
     send_qc_result(qc_result, sample_id)
@@ -117,7 +110,6 @@ def analyse_new_sample():
     callback_url = data.get("callback_url", "")
 
     res = predictor_task.delay(files, sample_id, callback_url)
-    res = genotype_task.delay(files, sample_id, callback_url)
     res = bigsi_build_task.delay(files, sample_id)
     res = qc_task.delay(files, sample_id)
 

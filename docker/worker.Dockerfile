@@ -1,12 +1,13 @@
 # Builder
-FROM python:3.6-slim-buster AS builder
+FROM python:3.6 AS builder
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends git build-essential wget libssl-dev libffi-dev dnsutils libz-dev libncurses-dev
+RUN apt-get install -y --no-install-recommends dnsutils libz-dev
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip
+RUN pip install wheel
 
 # Build mccortex
 WORKDIR /usr/src/app

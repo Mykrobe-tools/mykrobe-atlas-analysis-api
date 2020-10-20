@@ -41,29 +41,3 @@ class PredictorTaskManager:
         ## Load the output
         results = load_json(outfile)
         return results
-
-    def run_genotype(self, files, sample_id):
-        outfile = self.genotype_filepath(sample_id)
-        out = subprocess.check_output(
-            [
-                "mykrobe",
-                "predict",
-                sample_id,
-                "custom",
-                "--custom_probe_set_path",
-                "data/tb-k21-probe-set-feb-09-2017.fasta.gz",
-                "-1",
-            ] + files + [
-                "--format",
-                "json",
-                "--tmp",
-                self.outdir,
-                "--skeleton_dir",
-                self.skeleton_dir,
-                "--output",
-                outfile,
-            ]
-        )
-        ## Load the output
-        results = load_json(outfile)
-        return results
