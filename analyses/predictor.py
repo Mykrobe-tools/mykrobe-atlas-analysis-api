@@ -13,11 +13,6 @@ class PredictorTaskManager:
             self.outdir, "{sample_id}_predictor.json".format(sample_id=sample_id)
         )
 
-    def genotype_filepath(self, sample_id):
-        return os.path.join(
-            self.outdir, "{sample_id}_genotype.json".format(sample_id=sample_id)
-        )
-
     def run_predictor(self, files, sample_id):
         outfile = self.predictor_filepath(sample_id)
         out = subprocess.check_output(
