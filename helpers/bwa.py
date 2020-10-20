@@ -20,7 +20,7 @@ def map_reads(infile_paths, sample_id, reference_filepath, outdir, read_group=No
     awk_cmd = ["awk", "/^@/ || !and($2,256)"]  # remove secondary alignments (but keep header)
 
     with open(outpath, 'wb') as outfile:
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE):
-            subprocess.run(awk_cmd, stdout=outfile)
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE) as p1:
+            subprocess.run(awk_cmd, stdin=p1.stdout, stdout=outfile)
 
     return outpath
