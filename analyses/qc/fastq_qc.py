@@ -42,7 +42,7 @@ def calculate_coverage(sam_path, ref_path):
     keys = ['bases mapped (cigar)']
 
     with subprocess.Popen([
-        "samtools", "stats", "-f", ref_path, sam_path
+        "samtools", "stats", "-r", ref_path, sam_path
     ], stdout=subprocess.PIPE, universal_newlines=True) as samstats_proc:
         samtools_stats = grep_samstats(samstats_proc.stdout, keys)
 
