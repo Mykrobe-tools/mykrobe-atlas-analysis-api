@@ -1,8 +1,10 @@
 import os
 import subprocess
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from tracking_client import QcResult
 
+from helpers import samtools
 from helpers.bwa import map_reads
 from helpers.callers import het_snp_caller
 from helpers.grepers import grep_samstats
@@ -15,8 +17,11 @@ MAX_HET_SNPS = os.getenv('MAX_HET_SNPS', 100000)
 def fastq_qc(infile_paths, sample_id, ref_path, outdir):
     sam_path = map_reads(infile_paths, sample_id, ref_path, outdir)
 
-    coverage = calculate_coverage(sam_path, ref_path)
-    number_of_het_snps = calculate_het_snps(sam_path, ref_path, outdir)
+    with ThreadPoolExecutor() as executor:
+        coverage_task = executor.submit(calculate_coverage, sam_path, ref_path)
+        het_snps_task = executor.submit(calculate_het_snps, sam_path, ref_path, outdir)
+    coverage = coverage_task.result()
+    number_of_het_snps = het_snps_task.result()
 
     decision = 'passed'
     if coverage <= COVERAGE_THRESHOLD or number_of_het_snps > MAX_HET_SNPS:
@@ -30,8 +35,9 @@ def fastq_qc(infile_paths, sample_id, ref_path, outdir):
 
 
 def calculate_het_snps(sam_path, ref_path, outdir):
+    sorted_sam_path = samtools.sort(sam_path)
     hsc = het_snp_caller.HetSnpCaller(
-        sam_path, ref_path, os.path.join(outdir, "het_snps")
+        sorted_sam_path, ref_path, os.path.join(outdir, "het_snps")
     )
     return hsc.run()
 
