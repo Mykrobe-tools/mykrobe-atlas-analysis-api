@@ -6,7 +6,9 @@ from flask import request
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
 from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
-    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH
+    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
+    ATLAS_AUTH_CLIENT_SECRET
+from helpers.atlas.auth import client_authenticate
 
 try:
     from StringIO import StringIO
@@ -67,14 +69,21 @@ logger = logging.getLogger(__name__)
 
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
+    access_token = client_authenticate(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
+    auth_header = f'Bearer {access_token}'
+
+    headers = {
+        'Authorization': auth_header
+    }
+
     ## POST /isolates/:id/result { type: "…", result: { … } }
     d = {"type": type, "result": results}
     if sub_type:
         d["subType"] = sub_type
     if request_type == "PUT":
-        r = requests.put(url, json=d)
+        r = requests.put(url, json=d, headers=headers)
     else:
-        r = requests.post(url, json=d)
+        r = requests.post(url, json=d, headers=headers)
 
 
 ## Analysis

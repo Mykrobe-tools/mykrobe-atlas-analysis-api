@@ -12,3 +12,8 @@ BIGSI_BUILD_URL = os.environ.get("BIGSI_BUILD_URL", "http://bigsi-api-service-sm
 BIGSI_BUILD_CONFIG = os.environ.get("BIGSI_BUILD_CONFIG", "/etc/bigsi/conf/config.yaml")
 REFERENCE_FILEPATH = os.environ.get("REFERENCE_FILEPATH", "/config/NC_000962.3.fasta")
 GENBANK_FILEPATH = os.environ.get("GENBANK_FILEPATH", "/config/NC_000962.3.gb")
+
+ATLAS_AUTH_SERVER = os.getenv('ATLAS_AUTH_SERVER')
+ATLAS_AUTH_CLIENT_ID = os.getenv('ATLAS_AUTH_CLIENT_ID')
+ATLAS_AUTH_CLIENT_SECRET = os.getenv('ATLAS_AUTH_CLIENT_SECRET')
+ATLAS_AUTH_REALM = os.getenv('ATLAS_AUTH_REALM', 'atlas')
