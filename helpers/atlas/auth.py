@@ -13,17 +13,21 @@ class AuthClient:
         client = BackendApplicationClient(client_id)
         self.oauth = OAuth2Session(
             client=client,
-            auto_refresh_url=token_url,
+            auto_refresh_url=self.token_url,
             auto_refresh_kwargs={
                 'client_id': client_id,
                 'client_secret': secret,
             },
-            token_updater=self.update_token
+            token_updater=self.token
         )
 
     def authenticate(self):
-        token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
-        self.update_token(token)
+        self.token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
 
-    def update_token(self, token):
-        self.oauth.token = token
+    @property
+    def token(self):
+        return self.oauth.token
+
+    @token.setter
+    def token(self, value):
+        self.oauth.token = value
