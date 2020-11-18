@@ -9,6 +9,10 @@ services:
     command: celery -A app.celery worker -O fair -l DEBUG --concurrency=4
     environment:
       REFERENCE_FILEPATH: data/NC_000962.3.fasta
+      ATLAS_AUTH_SERVER: https://accounts-dev.mykro.be/auth
+      ATLAS_AUTH_CLIENT_ID: analysis-api
+      ATLAS_AUTH_CLIENT_SECRET: 66011b88-e780-4997-a518-b1b42bccdd1f
+      ATLAS_AUTH_REALM: atlas
     volumes:
     - ./uploads:/uploads:ro
     links:
@@ -20,6 +24,11 @@ services:
       dockerfile: docker/api.Dockerfile
     ports:
       - "8080:80"
+    environment:
+      ATLAS_AUTH_SERVER: https://accounts-dev.mykro.be/auth
+      ATLAS_AUTH_CLIENT_ID: analysis-api
+      ATLAS_AUTH_CLIENT_SECRET: 66011b88-e780-4997-a518-b1b42bccdd1f
+      ATLAS_AUTH_REALM: atlas
     links:
       - redis
 
