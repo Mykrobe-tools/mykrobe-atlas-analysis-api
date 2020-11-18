@@ -4,14 +4,14 @@ from requests_oauthlib import OAuth2Session
 from config import ATLAS_AUTH_SERVER, ATLAS_AUTH_REALM
 
 
-class AuthClient:
+class AtlasClient:
 
     def __init__(self, client_id, secret, server_url=ATLAS_AUTH_SERVER, realm_name=ATLAS_AUTH_REALM):
         self.token_url = f'{server_url}/realms/{realm_name}/protocol/openid-connect/token'
         self.secret = secret
 
         client = BackendApplicationClient(client_id)
-        self.oauth = OAuth2Session(
+        self.session = OAuth2Session(
             client=client,
             auto_refresh_url=self.token_url,
             auto_refresh_kwargs={
@@ -22,12 +22,12 @@ class AuthClient:
         )
 
     def authenticate(self):
-        token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
+        token = self.session.fetch_token(self.token_url, client_secret=self.secret)
         self.set_token(token)
 
     @property
     def token(self):
-        return self.oauth.token
+        return self.session.token
 
     def set_token(self, value):
-        self.oauth.token = value
+        self.session.token = value
