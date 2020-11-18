@@ -8,7 +8,7 @@ from analyses.tracking import send_qc_result
 from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
     BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
     ATLAS_AUTH_CLIENT_SECRET
-from helpers.atlas.auth import client_authenticate
+from helpers.atlas.auth import AuthClient
 
 try:
     from StringIO import StringIO
@@ -67,10 +67,13 @@ requests_log.propagate = True
 
 logger = logging.getLogger(__name__)
 
+auth_client = AuthClient(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
+
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
-    access_token = client_authenticate(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
-    auth_header = f'Bearer {access_token}'
+    if not auth_client.oauth.token:
+        auth_client.authenticate()
+    auth_header = f'Bearer {auth_client.oauth.token["access_token"]}'
 
     headers = {
         'Authorization': auth_header
