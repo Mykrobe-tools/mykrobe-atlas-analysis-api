@@ -22,7 +22,8 @@ class AuthClient:
         )
 
     def authenticate(self):
-        self.token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
+        token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
+        self.set_token(token)
 
     @property
     def token(self):
