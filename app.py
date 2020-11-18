@@ -71,9 +71,9 @@ auth_client = AuthClient(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
 
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
-    if not auth_client.oauth.token:
+    if not auth_client.token:
         auth_client.authenticate()
-    auth_header = f'Bearer {auth_client.oauth.token["access_token"]}'
+    auth_header = f'Bearer {auth_client.token["access_token"]}'
 
     headers = {
         'Authorization': auth_header
