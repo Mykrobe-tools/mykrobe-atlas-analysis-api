@@ -21,13 +21,7 @@ class AtlasClient:
             token_updater=self.set_token
         )
 
-    def authenticate(self):
-        token = self.session.fetch_token(self.token_url, client_secret=self.secret)
-        self.set_token(token)
-
-    @property
-    def token(self):
-        return self.session.token
+        self.session.token = self.session.fetch_token(self.token_url, client_secret=self.secret)
 
     def set_token(self, value):
         self.session.token = value

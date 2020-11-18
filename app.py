@@ -71,9 +71,6 @@ atlas_client = AtlasClient(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
 
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
-    if not atlas_client.token:
-        atlas_client.authenticate()
-
     ## POST /isolates/:id/result { type: "…", result: { … } }
     d = {"type": type, "result": results}
     if sub_type:
