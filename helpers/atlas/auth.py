@@ -18,7 +18,7 @@ class AuthClient:
                 'client_id': client_id,
                 'client_secret': secret,
             },
-            token_updater=self.token
+            token_updater=self.set_token
         )
 
     def authenticate(self):
@@ -28,6 +28,5 @@ class AuthClient:
     def token(self):
         return self.oauth.token
 
-    @token.setter
-    def token(self, value):
+    def set_token(self, value):
         self.oauth.token = value
