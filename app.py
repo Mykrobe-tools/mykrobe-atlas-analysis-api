@@ -6,7 +6,9 @@ from flask import request
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
 from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
-    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH
+    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
+    ATLAS_AUTH_CLIENT_SECRET
+from helpers.atlas.client import AtlasClient
 
 try:
     from StringIO import StringIO
@@ -65,6 +67,8 @@ requests_log.propagate = True
 
 logger = logging.getLogger(__name__)
 
+atlas_client = AtlasClient(ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET)
+
 
 def send_results(type, results, url, sub_type=None, request_type="POST"):
     ## POST /isolates/:id/result { type: "…", result: { … } }
@@ -72,9 +76,9 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
     if sub_type:
         d["subType"] = sub_type
     if request_type == "PUT":
-        r = requests.put(url, json=d)
+        r = atlas_client.session.put(url, json=d)
     else:
-        r = requests.post(url, json=d)
+        r = atlas_client.session.post(url, json=d)
 
 
 ## Analysis
