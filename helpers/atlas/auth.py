@@ -17,9 +17,13 @@ class AuthClient:
             auto_refresh_kwargs={
                 'client_id': client_id,
                 'client_secret': secret,
-            }
+            },
+            token_updater=self.update_token
         )
 
     def authenticate(self):
         token = self.oauth.fetch_token(self.token_url, client_secret=self.secret)
+        self.update_token(token)
+
+    def update_token(self, token):
         self.oauth.token = token
