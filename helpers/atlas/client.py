@@ -21,7 +21,7 @@ class AtlasClient:
             token_updater=self.set_token
         )
 
-        self.session.token = self.session.fetch_token(self.token_url, client_secret=self.secret)
+        self.session.token = self.session.fetch_token(self.token_url, scope=['offline_access'], client_secret=self.secret)
 
     def set_token(self, value):
         self.session.token = value
