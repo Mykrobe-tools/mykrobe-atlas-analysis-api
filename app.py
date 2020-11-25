@@ -192,19 +192,16 @@ def load_tree(version):
     return data
 
 
-@celery.task()
-def tree_task(version):
+def get_tree(version):
     assert version == "latest"
     data = load_tree(version)
-    url = urljoin(ATLAS_API, "trees")
     results = {"tree": data, "version": version}
-    send_results("tree", results, url)
     return results
 
 
 @app.route("/tree/<version>", methods=["GET"])
 def tree(version):
-    results = tree_task(version)
+    results = get_tree(version)
     response = json.dumps({"result": results, "type": "tree"}), 200
     return response
 
