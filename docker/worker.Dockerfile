@@ -1,5 +1,12 @@
+ARG mykrobe_version=0.9.0
+ARG bwa_version=0.7.15
+ARG samtools_version=1.3.1
+
 # Builder
 FROM python:3.6 AS builder
+ARG mykrobe_version
+ARG bwa_version
+ARG samtools_version
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends dnsutils libz-dev
@@ -11,7 +18,7 @@ RUN pip install wheel
 
 # Build mccortex
 WORKDIR /usr/src/app
-RUN git clone --branch v0.9.0 https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
+RUN git clone --branch v${mykrobe_version} https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
 WORKDIR mykrobe-predictor
 RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make
 
@@ -25,13 +32,13 @@ RUN mykrobe panels update_species all
 
 # Build samtools
 WORKDIR /usr/src/app
-RUN wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 -O - | tar xfj -
-RUN cd samtools-1.3.1 && make
+RUN wget https://github.com/samtools/samtools/releases/download/${samtools_version}/samtools-${samtools_version}.tar.bz2 -O - | tar xfj -
+RUN cd samtools-${samtools_version} && make
 
 # Build bwa
 WORKDIR /usr/src/app
-RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2 -O - | tar xfj -
-RUN cd bwa-0.7.15 && make
+RUN wget https://github.com/lh3/bwa/releases/download/v${bwa_version}/bwa-${bwa_version}.tar.bz2 -O - | tar xfj -
+RUN cd bwa-${bwa_version} && make
 
 # Python requirements
 WORKDIR /usr/src/app
@@ -40,6 +47,10 @@ RUN pip install -r requirements.txt
 
 # Runtime image
 FROM python:3.6-slim-buster
+ARG mykrobe_version
+ARG bwa_version
+ARG samtools_version
+
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -52,8 +63,12 @@ RUN apt clean
 # Make symbolic links
 WORKDIR /usr/src/app
 RUN ln -s $(pwd)/mykrobe-predictor/mccortex/bin/mccortex31 /usr/local/bin/
-RUN ln -s $(pwd)/samtools-1.3.1/samtools /usr/local/bin/
-RUN ln -s $(pwd)/bwa-0.7.15/bwa /usr/local/bin/
+RUN ln -s $(pwd)/samtools-${samtools_version}/samtools /usr/local/bin/
+RUN ln -s $(pwd)/bwa-${bwa_version}/bwa /usr/local/bin/
+
+ENV MYKROBE_VERSION=${mykrobe_version}
+ENV BWA_VERSION=${bwa_version}
+ENV SAMTOOLS_VERSION=${samtools_version}
 
 WORKDIR /usr/src/app
 COPY . .
