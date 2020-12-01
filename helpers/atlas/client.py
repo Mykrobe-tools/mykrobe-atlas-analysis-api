@@ -1,4 +1,4 @@
-from oauthlib.oauth2 import BackendApplicationClient
+from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 
 from config import ATLAS_AUTH_SERVER, ATLAS_AUTH_REALM
@@ -13,11 +13,6 @@ class AtlasClient:
         client = BackendApplicationClient(client_id)
         self.session = OAuth2Session(
             client=client,
-            auto_refresh_url=self.token_url,
-            auto_refresh_kwargs={
-                'client_id': client_id,
-                'client_secret': secret,
-            },
             token_updater=self.set_token
         )
 
@@ -25,3 +20,10 @@ class AtlasClient:
 
     def set_token(self, value):
         self.session.token = value
+
+    def request(self, method, url, data=None, json=None):
+        try:
+            return self.session.request(method, url, data=data, json=json)
+        except TokenExpiredError:
+            self.session.token = self.session.fetch_token(self.token_url, client_secret=self.secret)
+            return self.session.request(method, url, data=data, json=json)

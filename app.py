@@ -75,10 +75,7 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
     d = {"type": type, "result": results}
     if sub_type:
         d["subType"] = sub_type
-    if request_type == "PUT":
-        r = atlas_client.session.put(url, json=d)
-    else:
-        r = atlas_client.session.post(url, json=d)
+    atlas_client.request(request_type, url, json=d)
 
 
 ## Analysis
