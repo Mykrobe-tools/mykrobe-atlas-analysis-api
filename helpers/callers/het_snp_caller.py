@@ -7,8 +7,12 @@ import logging
 import os
 import re
 import subprocess
+from time import time
 
 import pyfastaq
+
+from analyses.tracking import record_event, EventName
+from config import SAMTOOLS_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +26,7 @@ class HetSnpCaller:
         sorted_bam,
         ref_fasta,
         outprefix,
+        sample_id,
         min_total_depth=4,
         min_second_depth=2,
         max_allele_freq=0.9,
@@ -32,6 +37,7 @@ class HetSnpCaller:
         self.min_total_depth = min_total_depth
         self.min_second_depth = min_second_depth
         self.max_allele_freq = max_allele_freq
+        self.sample_id = sample_id
 
     @classmethod
     def _vcf_line_is_snp_and_or_het(
@@ -87,6 +93,7 @@ class HetSnpCaller:
         min_total_depth,
         min_second_depth,
         max_allele_freq,
+        sample_id
     ):
         results = {}
 
@@ -95,6 +102,7 @@ class HetSnpCaller:
             "-f", ref, bam
         ]
 
+        start_time = time()
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True) as p:
             for line in p.stdout:
                 if line.startswith("#"):
@@ -111,6 +119,10 @@ class HetSnpCaller:
                     results[chrom]["snps"] += 1
                 if is_het:
                     results[chrom]["hets"] += 1
+        duration = time() - start_time
+
+        record_event(sample_id, EventName.QC, software='samtools', software_version=SAMTOOLS_VERSION,
+                     start_timestamp=start_time, duration=duration, command=' '.join(cmd))
 
         return results
 
@@ -140,6 +152,7 @@ class HetSnpCaller:
             self.min_total_depth,
             self.min_second_depth,
             self.max_allele_freq,
+            self.sample_id
         )
 
         return HetSnpCaller._write_reports(snp_data, ref_lengths)

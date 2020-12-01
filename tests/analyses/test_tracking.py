@@ -13,7 +13,7 @@ from analyses.tracking import record_event
     duration=st.floats(),
     command=st.text(),
 )
-def test_fuzz_record_event(
+def test_record_event(
     sample_id,
     event_name,
     software,

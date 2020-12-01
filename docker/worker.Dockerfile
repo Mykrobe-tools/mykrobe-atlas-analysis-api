@@ -1,12 +1,14 @@
 ARG mykrobe_version=0.9.0
 ARG bwa_version=0.7.15
 ARG samtools_version=1.3.1
+ARG mccortex_version=geno_kmer_count
 
 # Builder
 FROM python:3.6 AS builder
 ARG mykrobe_version
 ARG bwa_version
 ARG samtools_version
+ARG mccortex_version
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends dnsutils libz-dev
@@ -20,7 +22,7 @@ RUN pip install wheel
 WORKDIR /usr/src/app
 RUN git clone --branch v${mykrobe_version} https://github.com/Mykrobe-tools/mykrobe.git mykrobe-predictor
 WORKDIR mykrobe-predictor
-RUN git clone --recursive -b geno_kmer_count https://github.com/Mykrobe-tools/mccortex && cd mccortex && make
+RUN git clone --recursive -b ${mccortex_version} https://github.com/Mykrobe-tools/mccortex && cd mccortex && make
 
 # Install Mykrobe into the current's Python environment
 WORKDIR /usr/src/app/mykrobe-predictor
@@ -50,6 +52,7 @@ FROM python:3.6-slim-buster
 ARG mykrobe_version
 ARG bwa_version
 ARG samtools_version
+ARG mccortex_version
 
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /opt/venv /opt/venv
@@ -69,6 +72,7 @@ RUN ln -s $(pwd)/bwa-${bwa_version}/bwa /usr/local/bin/
 ENV MYKROBE_VERSION=${mykrobe_version}
 ENV BWA_VERSION=${bwa_version}
 ENV SAMTOOLS_VERSION=${samtools_version}
+ENV MCCORTEX_VERSION=${mccortex_version}
 
 WORKDIR /usr/src/app
 COPY . .
