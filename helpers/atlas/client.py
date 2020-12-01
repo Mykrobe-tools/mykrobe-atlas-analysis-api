@@ -12,18 +12,14 @@ class AtlasClient:
 
         client = BackendApplicationClient(client_id)
         self.session = OAuth2Session(
-            client=client,
-            token_updater=self.set_token
+            client=client
         )
 
-        self.session.token = self.session.fetch_token(self.token_url, client_secret=self.secret)
-
-    def set_token(self, value):
-        self.session.token = value
+        self.session.fetch_token(self.token_url, client_secret=self.secret)
 
     def request(self, method, url, data=None, json=None):
         try:
             return self.session.request(method, url, data=data, json=json)
         except TokenExpiredError:
-            self.session.token = self.session.fetch_token(self.token_url, client_secret=self.secret)
+            self.session.fetch_token(self.token_url, client_secret=self.secret)
             return self.session.request(method, url, data=data, json=json)
