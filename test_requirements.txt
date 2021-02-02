@@ -1,3 +1,3 @@
 pytest
-pytest-mock
-hypothesis
+pytest-mock==3.3.1
+hypothesis==5.41.4
