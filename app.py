@@ -131,7 +131,9 @@ def _hash(w):
 
 
 def filter_bigsi_results(d):
+    logger.debug('filtering on genotype results')
     d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
+    logger.debug('filtered results size: %s', len(d["results"]))
     return d
 
 
@@ -151,6 +153,8 @@ def bigsi_query_task(query_type, query, user_id, search_id):
         "protein-variant": bigsi_tm.protein_variant_query,
     }[query_type](query)
     out = results
+    if "results" in out:
+        logger.debug('results size: %s', len(out["results"]))
     if query_type in ["dna-variant", "protein-variant"] and "results" in out:
         out = filter_bigsi_results(out)
     url = urljoin(ATLAS_API, f"/searches/{search_id}/results")
