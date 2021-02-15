@@ -222,7 +222,7 @@ def distance_task(sample_id, callback_url, max_distance=None, limit=None):
         sample_id, max_distance=max_distance, limit=limit, sort=True
     )
     callback_url = urljoin(ATLAS_API, callback_url)
-    requests.post(callback_url, json=results)
+    atlas_client.request("POST", callback_url, json=results)
 
 
 @app.route("/distance", methods=["POST"])
