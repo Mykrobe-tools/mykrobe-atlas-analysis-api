@@ -10,7 +10,7 @@ from analyses.tracking import record_event
     software=st.text(),
     software_version=st.text(),
     start_timestamp=st.floats(),
-    duration=st.floats(),
+    duration=st.integers(),
     command=st.text(),
 )
 def test_record_event(
@@ -24,7 +24,7 @@ def test_record_event(
     mocker
 ):
     mock_event = mocker.MagicMock()
-    mock_event_cons = mocker.patch('analyses.tracking.Event', return_value=mock_event)
+    mock_event_cons = mocker.patch('analyses.tracking.ValidatedEvent', return_value=mock_event)
     mock_event_api = mocker.patch('analyses.tracking.event_api_instance')
 
     record_event(

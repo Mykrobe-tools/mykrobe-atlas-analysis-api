@@ -1,10 +1,10 @@
-from time import time
+import os
+import subprocess
+import time
 
 from analyses.tracking import record_event, EventName
 from config import MYKROBE_VERSION
 from helpers import load_json
-import subprocess
-import os
 
 
 class PredictorTaskManager:
@@ -36,9 +36,9 @@ class PredictorTaskManager:
             outfile,
         ]
 
-        start_time = time()
+        start_time = time.time_ns()
         out = subprocess.check_output(command)
-        duration = time() - start_time
+        duration = int((time.time_ns() - start_time) / 1000)
 
         record_event(sample_id, EventName.PREDICTION, software='mykrobe', software_version=MYKROBE_VERSION,
                      start_timestamp=start_time,

@@ -1,6 +1,6 @@
 import subprocess
+import time
 from pathlib import Path
-from time import time
 
 from analyses.tracking import EventName, record_event
 from config import BWA_VERSION
@@ -23,11 +23,11 @@ def map_reads(infile_paths, sample_id, reference_filepath, outdir, read_group=No
     cmd = ["bwa", "mem", "-M"] + R_option + [reference_filepath] + infile_paths
     awk_cmd = ["awk", "/^@/ || !and($2,256)"]  # remove secondary alignments (but keep header)
 
-    start_time = time()
+    start_time = time.time_ns()
     with open(outpath, 'wb') as outfile:
         with subprocess.Popen(cmd, stdout=subprocess.PIPE) as p1:
             subprocess.run(awk_cmd, stdin=p1.stdout, stdout=outfile)
-    duration = time() - start_time
+    duration = int((time.time_ns() - start_time) / 1000)
 
     record_event(sample_id, EventName.QC, software='bwa', software_version=BWA_VERSION,
                  start_timestamp=start_time, duration=duration, command=' '.join(cmd))
