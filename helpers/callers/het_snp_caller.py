@@ -102,7 +102,7 @@ class HetSnpCaller:
             "-f", ref, bam
         ]
 
-        start_time = time.()
+        start_time = time.time_ns()
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True) as p:
             for line in p.stdout:
                 if line.startswith("#"):
