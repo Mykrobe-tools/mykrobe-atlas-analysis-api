@@ -2,7 +2,7 @@ import os
 from enum import Enum
 
 import tracking_client
-from tracking_client import Event
+from tracking_client import ValidatedEvent
 from tracking_client.configuration import Configuration
 
 NUM_API_CLIENT_THREADS = 10
@@ -28,12 +28,12 @@ def send_qc_result(qc_result, sample_id):
     qc_result_api_instance.samples_id_qc_result_put(sample_id, qc_result)
 
 
-def record_event(sample_id: str, event_name: EventName, software: str, software_version: str, start_timestamp: float, duration: float, command: str):
+def record_event(sample_id: str, event_name: EventName, software: str, software_version: str, start_timestamp: float, duration: int, command: str):
     """
 
     :param duration: in seconds
     """
-    event = Event(
+    event = ValidatedEvent(
         name=event_name.value,
         software=software,
         software_version=software_version,

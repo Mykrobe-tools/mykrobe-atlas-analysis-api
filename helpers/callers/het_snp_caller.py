@@ -7,7 +7,7 @@ import logging
 import os
 import re
 import subprocess
-from time import time
+import time
 
 import pyfastaq
 
@@ -102,7 +102,7 @@ class HetSnpCaller:
             "-f", ref, bam
         ]
 
-        start_time = time()
+        start_time = time.()
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True) as p:
             for line in p.stdout:
                 if line.startswith("#"):
@@ -119,7 +119,7 @@ class HetSnpCaller:
                     results[chrom]["snps"] += 1
                 if is_het:
                     results[chrom]["hets"] += 1
-        duration = time() - start_time
+        duration = int((time.time_ns() - start_time) / 1000)
 
         record_event(sample_id, EventName.QC, software='samtools', software_version=SAMTOOLS_VERSION,
                      start_timestamp=start_time, duration=duration, command=' '.join(cmd))

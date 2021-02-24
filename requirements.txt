@@ -8,4 +8,4 @@ uwsgi
 bitarray
 requests_oauthlib
 git+git://github.com/Mykrobe-tools/mykrobe-atlas-distance-client@d393b4ab5865deabd96d758294ea825d09051cbb
-git+git://github.com/Mykrobe-tools/mykrobe-atlas-tracking-client@f28faaa8ae307b7950b440d986efd4c9fbeaa746
+git+git://github.com/Mykrobe-tools/mykrobe-atlas-tracking-client@450dead0f96415e28b0efc71389a949fa91261e1
