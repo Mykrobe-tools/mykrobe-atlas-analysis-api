@@ -1,6 +1,5 @@
 import subprocess
 import time
-from pathlib import Path
 
 from analyses.tracking import EventName, record_event
 from config import BWA_VERSION
@@ -9,7 +8,7 @@ from config import BWA_VERSION
 def map_reads(infile_paths, sample_id, reference_filepath, outdir, read_group=None):
     """Ref: https://github.com/iqbal-lab-org/clockwork/blob/7113a9bfd67e1eb7ace4895a48c8e9a255a658e0/python/clockwork/read_map.py#L51
     """
-    outpath = Path(outdir) / f'{sample_id}.sam'
+    outpath = f'{outdir}/{sample_id}.sam'
 
     # "LB:LIB" is needed, otherwise samtools rmdup segfaults when map_reads_set() is used
     R_option = [] if read_group is None else [
