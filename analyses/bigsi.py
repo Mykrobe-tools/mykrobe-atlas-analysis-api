@@ -9,7 +9,6 @@ import logging
 
 from analyses.tracking import record_event, EventName
 from config import MCCORTEX_VERSION
-from app import distance_build_task
 
 MAX_POLL_COUNT = 50
 POLL_INTERVAL_SECONDS = 3
@@ -18,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="", bigsi_build_config=""):
+    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="",
+                 bigsi_build_config=""):
         self.bigsi_api_url = bigsi_api_url
         self.bigsi_build_url = bigsi_build_url
         self.bigsi_build_config = bigsi_build_config
@@ -119,19 +119,19 @@ class BigsiTaskManager:
         files_with_flags = list(itertools.chain.from_iterable([("-1", f) for f in files]))
 
         build_ctx_cmd = [
-                "mccortex31",
-                "build",
-                "-f",
-                "-k",
-                str(31),
-                "-s",
-                sample_id,
-                "--fq-cutoff",
-                str(5),
-            ] + files_with_flags + [
-                uncleaned_ctx,
-            ]
-        logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))
+                            "mccortex31",
+                            "build",
+                            "-f",
+                            "-k",
+                            str(31),
+                            "-s",
+                            sample_id,
+                            "--fq-cutoff",
+                            str(5),
+                        ] + files_with_flags + [
+                            uncleaned_ctx,
+                        ]
+        logging.log(level=logging.DEBUG, msg="Running: " + " ".join(build_ctx_cmd))
 
         start_time = time.time_ns()
         out = subprocess.check_output(build_ctx_cmd)
@@ -141,14 +141,14 @@ class BigsiTaskManager:
                      start_timestamp=start_time, duration=duration, command=' '.join(build_ctx_cmd))
 
         clean_ctx_cmd = [
-                "mccortex31",
-                "clean",
-                "--fallback",
-                str(5),
-                "--out",
-                cleaned_ctx,
-                uncleaned_ctx,
-            ]
+            "mccortex31",
+            "clean",
+            "--fallback",
+            str(5),
+            "--out",
+            cleaned_ctx,
+            uncleaned_ctx,
+        ]
         logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
 
@@ -160,7 +160,7 @@ class BigsiTaskManager:
         self._requests_post(self.bloom_url, bloom_query)
         self._wait_until_available(bloom)
 
-        distance_build_task.delay(bloom, sample_id)
+        self._trigger_distance_build_task(bloom, sample_id)
 
         with open(bigsi_config_path, "w") as conf:
             conf.write("h: 1\n")
@@ -190,6 +190,10 @@ class BigsiTaskManager:
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
+    def _trigger_distance_build_task(self, bloom, sample_id):
+        from app import distance_build_task  # TODO: refactor this to remove cyclic dependency
+        distance_build_task.delay(bloom, sample_id)
+
     def _wait_until_available(self, file_path, max_wait_time=128):
         # temporary hack, due to slow disk, the file may take some time to appear
         wait_time = 1
@@ -209,4 +213,3 @@ class BigsiTaskManager:
         except requests.exceptions.ConnectionError as e:
             logging.log(level=logging.DEBUG, msg="Exception thrown when calling {} with data {}: {}".format(
                 url, json.dumps(data), str(e)))
-

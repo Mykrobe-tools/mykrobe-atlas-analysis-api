@@ -29,6 +29,7 @@ samples_post_api_instance = distance_client.SamplesPostApi(api_client)
 leaf_put_api_instance = distance_client.LeafPutApi(api_client)
 neighbours_put_api_instance = distance_client.NeighboursPutApi(api_client)
 
+
 def _sort_and_filter_distance_results(results, max_distance, limit):
     if max_distance is not None:
         results = [r for r in results if r.distance <= max_distance]
