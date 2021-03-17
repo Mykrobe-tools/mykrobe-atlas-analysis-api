@@ -84,23 +84,20 @@ def _insert_genotypes_to_redis(sample_name, genotypes):
     alternate = bitarray(num_calls)
     alternate.setall(0)
     for index, genotype_call in enumerate(genotypes):
-        if genotype_call == "1":
+        if genotype_call == 1:
             homozygous[index] = 1
-        if genotype_call == "2":
+        if genotype_call == 2:
             homozygous[index] = 1
             alternate[index] = 1
-    print(homozygous)
-    print(alternate)
+
     key1 = f"{GENOTYPE_KEY}-homozygous-{sample_name}"
     key2 = f"{GENOTYPE_KEY}-alternate-{sample_name}"
     pipe = REDIS.pipeline()
     for index, bit in enumerate(homozygous):
         if bit:
-            print(f"setting bit for {key1} at {index}")
             pipe.setbit(key1, index, 1)
     for index, bit in enumerate(alternate):
         if bit:
-            print(f"setting bit for {key2} at {index}")
             pipe.setbit(key2, index, 1)
     pipe.sadd(GENOTYPE_SAMPLES_KEY, sample_name)
     pipe.execute()
@@ -210,7 +207,6 @@ class DistanceTaskManager:
 
         logger.debug('Genotyping with bloomfilter and probes')
         genotypes = _genotype_with_bloomfilter_and_probes(bloom_filters, probes_hashes)
-        print(genotypes)
 
         logger.debug('Inserting new sample genotypes into redis')
         _insert_genotypes_to_redis(sample_id, genotypes)
