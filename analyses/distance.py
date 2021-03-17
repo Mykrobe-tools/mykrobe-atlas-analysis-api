@@ -89,15 +89,18 @@ def _insert_genotypes_to_redis(sample_name, genotypes):
         if genotype_call == "2":
             homozygous[index] = 1
             alternate[index] = 1
-
+    print(homozygous)
+    print(alternate)
     key1 = f"{GENOTYPE_KEY}-homozygous-{sample_name}"
     key2 = f"{GENOTYPE_KEY}-alternate-{sample_name}"
     pipe = REDIS.pipeline()
     for index, bit in enumerate(homozygous):
         if bit:
+            print(f"setting bit for {key1} at {index}")
             pipe.setbit(key1, index, 1)
     for index, bit in enumerate(alternate):
         if bit:
+            print(f"setting bit for {key2} at {index}")
             pipe.setbit(key2, index, 1)
     pipe.sadd(GENOTYPE_SAMPLES_KEY, sample_name)
     pipe.execute()
