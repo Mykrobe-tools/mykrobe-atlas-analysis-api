@@ -29,8 +29,6 @@ configuration.host = os.environ.get("ATLAS_DISTANCE_API", "http://distance-api-s
 api_client = distance_client.ApiClient(configuration=configuration, pool_threads=NUM_API_CLIENT_THREADS)
 samples_get_api_instance = distance_client.SamplesGetApi(api_client)
 samples_post_api_instance = distance_client.SamplesPostApi(api_client)
-leaf_put_api_instance = distance_client.LeafPutApi(api_client)
-neighbours_put_api_instance = distance_client.NeighboursPutApi(api_client)
 
 
 def _sort_and_filter_distance_results(results, max_distance, limit):
@@ -216,7 +214,7 @@ class DistanceTaskManager:
         logger.debug('Calculating nearest leaf and nearest neighbours')
         nearest_leaf, nearest_leaf_distance = _get_nearest_leaf(sample_id)
         nearest_neighbours = _get_nearest_neighbours(sample_id)
-
+        print(nearest_neighbours)
         logger.debug('Updating distance API with new sample')
         leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
         neighbours = [distance_client.Neighbour(n, d) for n, d in nearest_neighbours.items()]
