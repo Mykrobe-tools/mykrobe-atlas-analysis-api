@@ -102,6 +102,10 @@ def _insert_genotypes_to_redis(sample_name, genotypes):
     pipe.execute()
 
 
+def _decode(byte):
+    return byte.decode("utf-8")
+
+
 def _get_nearest_leaf(sample_name):
     primary_sample = sample_name
     secondary_samples = list(map(_decode, REDIS.smembers(GENOTYPE_TREE_LEAVE_KEY)))
