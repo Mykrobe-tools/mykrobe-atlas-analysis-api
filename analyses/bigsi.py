@@ -133,9 +133,9 @@ class BigsiTaskManager:
                         ]
         logging.log(level=logging.DEBUG, msg="Running: " + " ".join(build_ctx_cmd))
 
-        start_time = time.time_ns()
+        start_time = time.time()
         out = subprocess.check_output(build_ctx_cmd)
-        duration = int((time.time_ns() - start_time) / 1000)
+        duration = int((time.time() - start_time) * 1000)
 
         record_event(sample_id, EventName.BIGSI_BUILDING, software='mccortex31', software_version=MCCORTEX_VERSION,
                      start_timestamp=start_time, duration=duration, command=' '.join(build_ctx_cmd))

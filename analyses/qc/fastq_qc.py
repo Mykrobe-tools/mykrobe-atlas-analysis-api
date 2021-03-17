@@ -51,10 +51,10 @@ def calculate_coverage(sam_path, ref_path, sample_id):
     keys = ['bases mapped (cigar)']
     cmd = ["samtools", "stats", "-r", ref_path, sam_path]
 
-    start_time = time.time_ns()
+    start_time = time.time()
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True) as samstats_proc:
         samtools_stats = grep_samstats(samstats_proc.stdout, keys)
-    duration = int((time.time_ns() - start_time) / 1000)
+    duration = int((time.time() - start_time) * 1000)
 
     record_event(sample_id, EventName.QC, software='samtools', software_version=SAMTOOLS_VERSION,
                  start_timestamp=start_time, duration=duration, command=' '.join(cmd))
