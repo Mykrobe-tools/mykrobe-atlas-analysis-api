@@ -109,7 +109,7 @@ class BigsiTaskManager:
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'
         return self._query(query, search_url)
 
-    def build_bigsi(self, files, sample_id):
+    def build_bigsi(self, files, sample_id, callback_url, kwargs):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
         bloom = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
@@ -160,7 +160,7 @@ class BigsiTaskManager:
         self._requests_post(self.bloom_url, bloom_query)
         self._wait_until_available(bloom)
 
-        self._trigger_distance_build_task(bloom, sample_id)
+        self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
 
         with open(bigsi_config_path, "w") as conf:
             conf.write("h: 1\n")
@@ -190,9 +190,9 @@ class BigsiTaskManager:
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
-    def _trigger_distance_build_task(self, bloom, sample_id):
+    def _trigger_distance_build_task(self, bloom, sample_id, callback_url, kwargs):
         from app import distance_build_task  # TODO: refactor this to remove cyclic dependency
-        distance_build_task.delay(bloom, sample_id)
+        distance_build_task.delay(bloom, sample_id, callback_url, kwargs)
 
     def _wait_until_available(self, file_path, max_wait_time=128):
         # temporary hack, due to slow disk, the file may take some time to appear

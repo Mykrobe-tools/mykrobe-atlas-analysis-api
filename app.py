@@ -81,16 +81,15 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(files, sample_id):
+def bigsi_build_task(files, sample_id, callback_url, kwargs):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
                                 BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_bigsi(files, sample_id)
+    bigsi_tm.build_bigsi(files, sample_id, callback_url, kwargs)
 
 
 @celery.task()
-def distance_build_task(bloomfilter, sample_id):
-    DistanceTaskManager.build_distance(bloomfilter, sample_id)
-
+def distance_build_task(bloomfilter, sample_id, callback_url, kwargs):
+    DistanceTaskManager.build_distance(bloomfilter, sample_id, callback_url, kwargs)
 
 @celery.task()
 def predictor_task(files, sample_id, callback_url):
@@ -113,9 +112,10 @@ def analyse_new_sample():
     files = data.get("files", [])
     sample_id = data.get("sample_id", "")
     callback_url = data.get("callback_url", "")
+    kwargs = data.get("params", {})
 
     res = predictor_task.delay(files, sample_id, callback_url)
-    res = bigsi_build_task.delay(files, sample_id)
+    res = bigsi_build_task.delay(files, sample_id, callback_url, kwargs)
     res = qc_task.delay(files, sample_id)
 
     MAPPER.create_mapping(sample_id, sample_id)

@@ -3,6 +3,9 @@ import pickle
 import distance_client
 import redis
 import logging
+import time
+
+from analyses.tracking import record_event, EventName
 from distance_client.rest import ApiException
 from distance_client.configuration import Configuration
 from bitarray import bitarray
@@ -196,7 +199,8 @@ class DistanceTaskManager:
         return results
 
     @classmethod
-    def build_distance(cls, bloomfilter, sample_id):
+    def build_distance(cls, bloomfilter, sample_id, callback_url, kwargs):
+        start_time = time.time()
         logger.debug('Building distance for %s', sample_id)
         bloom_filters = bitarray()
         with open(bloomfilter, "rb") as bf:
@@ -216,10 +220,22 @@ class DistanceTaskManager:
         logger.debug('Updating distance API with new sample')
         leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
         neighbours = [distance_client.Neighbour(n, d) for n, d in nearest_neighbours.items()]
+        sample_to_update = distance_client.Sample(experiment_id=sample_id, nearest_leaf_node=leaf_node,
+                                                  nearest_neighbours=neighbours)
         try:
-            samples_post_api_instance.samples_post(sample_id)
-            leaf_put_api_instance.samples_id_nearest_leaf_node_put(sample_id, leaf_node)
-            neighbours_put_api_instance.samples_id_nearest_neighbours_put(sample_id, neighbours)
+            samples_post_api_instance.samples_post(sample_to_update)
         except ApiException:
             logger.debug('ApiException when updating distance API')
-        pass
+
+        logger.debug('Updating Atlas API with new distance results')
+        cls._update_atlas_api_with_new_distance_results(callback_url, kwargs, sample_id)
+
+        duration = int((time.time() - start_time) * 1000)
+        record_event(sample_id, EventName.DISTANCE_CALCULATION, software='analysis-api-worker',
+                     software_version='unknown', start_timestamp=start_time,
+                     duration=duration, command='build_distance')
+
+    @classmethod
+    def _update_atlas_api_with_new_distance_results(cls, callback_url, kwargs, sample_id):
+        from app import distance_query_task # TODO: refactor this to remove cyclic dependency
+        distance_query_task.delay(sample_id, callback_url, **kwargs)
