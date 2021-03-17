@@ -36,9 +36,9 @@ class PredictorTaskManager:
             outfile,
         ]
 
-        start_time = time.time_ns()
+        start_time = time.time()
         out = subprocess.check_output(command)
-        duration = int((time.time_ns() - start_time) / 1000)
+        duration = int((time.time() - start_time) * 1000)
 
         record_event(sample_id, EventName.PREDICTION, software='mykrobe', software_version=MYKROBE_VERSION,
                      start_timestamp=start_time,
