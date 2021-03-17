@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="", bigsi_build_config=""):
+    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="",
+                 bigsi_build_config=""):
         self.bigsi_api_url = bigsi_api_url
         self.bigsi_build_url = bigsi_build_url
         self.bigsi_build_config = bigsi_build_config
@@ -108,29 +109,29 @@ class BigsiTaskManager:
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'
         return self._query(query, search_url)
 
-    def build_bigsi(self, files, sample_id):
+    def build_bigsi(self, files, sample_id, callback_url, kwargs):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
+        bloom = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
         bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
         bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
 
         files_with_flags = list(itertools.chain.from_iterable([("-1", f) for f in files]))
 
         build_ctx_cmd = [
-                "mccortex31",
-                "build",
-                "-f",
-                "-k",
-                str(31),
-                "-s",
-                sample_id,
-                "--fq-cutoff",
-                str(5),
-            ] + files_with_flags + [
-                uncleaned_ctx,
-            ]
-        logging.log(level=logging.DEBUG, msg="Running: "+" ".join(build_ctx_cmd))
+                            "mccortex31",
+                            "build",
+                            "-f",
+                            "-k",
+                            str(31),
+                            "-s",
+                            sample_id,
+                            "--fq-cutoff",
+                            str(5),
+                        ] + files_with_flags + [
+                            uncleaned_ctx,
+                        ]
+        logging.log(level=logging.DEBUG, msg="Running: " + " ".join(build_ctx_cmd))
 
         start_time = time.time()
         out = subprocess.check_output(build_ctx_cmd)
@@ -140,14 +141,14 @@ class BigsiTaskManager:
                      start_timestamp=start_time, duration=duration, command=' '.join(build_ctx_cmd))
 
         clean_ctx_cmd = [
-                "mccortex31",
-                "clean",
-                "--fallback",
-                str(5),
-                "--out",
-                cleaned_ctx,
-                uncleaned_ctx,
-            ]
+            "mccortex31",
+            "clean",
+            "--fallback",
+            str(5),
+            "--out",
+            cleaned_ctx,
+            uncleaned_ctx,
+        ]
         logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
 
@@ -158,6 +159,8 @@ class BigsiTaskManager:
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         self._requests_post(self.bloom_url, bloom_query)
         self._wait_until_available(bloom)
+
+        self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
 
         with open(bigsi_config_path, "w") as conf:
             conf.write("h: 1\n")
@@ -187,6 +190,10 @@ class BigsiTaskManager:
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
+    def _trigger_distance_build_task(self, bloom, sample_id, callback_url, kwargs):
+        from app import distance_build_task  # TODO: refactor this to remove cyclic dependency
+        distance_build_task.delay(bloom, sample_id, callback_url, kwargs)
+
     def _wait_until_available(self, file_path, max_wait_time=128):
         # temporary hack, due to slow disk, the file may take some time to appear
         wait_time = 1
@@ -206,4 +213,3 @@ class BigsiTaskManager:
         except requests.exceptions.ConnectionError as e:
             logging.log(level=logging.DEBUG, msg="Exception thrown when calling {} with data {}: {}".format(
                 url, json.dumps(data), str(e)))
-
