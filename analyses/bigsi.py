@@ -9,6 +9,7 @@ import logging
 
 from analyses.tracking import record_event, EventName
 from config import MCCORTEX_VERSION
+from app import distance_build_task
 
 MAX_POLL_COUNT = 50
 POLL_INTERVAL_SECONDS = 3
@@ -111,7 +112,7 @@ class BigsiTaskManager:
     def build_bigsi(self, files, sample_id):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        bloom = os.path.join(self.outdir, "{sample_id}".format(sample_id=sample_id))
+        bloom = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
         bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
         bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
 
@@ -158,6 +159,8 @@ class BigsiTaskManager:
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
         self._requests_post(self.bloom_url, bloom_query)
         self._wait_until_available(bloom)
+
+        distance_build_task.delay(bloom, sample_id)
 
         with open(bigsi_config_path, "w") as conf:
             conf.write("h: 1\n")

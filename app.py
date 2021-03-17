@@ -53,7 +53,6 @@ celery = make_celery(app)
 
 
 import json
-import requests
 import logging
 import http.client as http_client
 
@@ -86,6 +85,11 @@ def bigsi_build_task(files, sample_id):
     bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
                                 BIGSI_BUILD_CONFIG)
     bigsi_tm.build_bigsi(files, sample_id)
+
+
+@celery.task()
+def distance_build_task(bloomfilter, sample_id):
+    DistanceTaskManager.build_distance(bloomfilter, sample_id)
 
 
 @celery.task()
@@ -213,7 +217,7 @@ DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
 
 @celery.task()
-def distance_task(sample_id, callback_url, max_distance=None, limit=None):
+def distance_query_task(sample_id, callback_url, max_distance=None, limit=None):
     if max_distance is None:
         max_distance = DEFAULT_MAX_NN_DISTANCE
     if limit is None:
@@ -232,7 +236,7 @@ def distance():
     callback_url = data.get("callback_url", "")
     kwargs = data.get("params", {})
 
-    res = distance_task.delay(sample_id,  callback_url, **kwargs)
+    res = distance_query_task.delay(sample_id, callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 
