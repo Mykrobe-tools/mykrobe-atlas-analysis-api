@@ -203,10 +203,11 @@ class DistanceTaskManager:
         bloom_filters = bitarray()
         with open(bloomfilter, "rb") as bf:
             bloom_filters.fromfile(bf)
-        probes_hashes = pickle.load(open("data/probes.hashes.pickle", "rb"))
+        probes_hashes = pickle.load(open("/usr/src/app/data/probes.hashes.pickle", "rb"))
 
         logger.debug('Genotyping with bloomfilter and probes')
         genotypes = _genotype_with_bloomfilter_and_probes(bloom_filters, probes_hashes)
+        print(genotypes)
 
         logger.debug('Inserting new sample genotypes into redis')
         _insert_genotypes_to_redis(sample_id, genotypes)
@@ -214,7 +215,7 @@ class DistanceTaskManager:
         logger.debug('Calculating nearest leaf and nearest neighbours')
         nearest_leaf, nearest_leaf_distance = _get_nearest_leaf(sample_id)
         nearest_neighbours = _get_nearest_neighbours(sample_id)
-        print(nearest_neighbours)
+
         logger.debug('Updating distance API with new sample')
         leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
         neighbours = [distance_client.Neighbour(n, d) for n, d in nearest_neighbours.items()]
