@@ -11,7 +11,7 @@ from analyses.tracking import record_event, EventName
 from config import MCCORTEX_VERSION
 
 MAX_POLL_COUNT = 50
-POLL_INTERVAL_SECONDS = 3
+POLL_INTERVAL_SECONDS = 6
 
 logger = logging.getLogger(__name__)
 
