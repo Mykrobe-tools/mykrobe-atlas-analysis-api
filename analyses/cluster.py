@@ -123,8 +123,8 @@ class ClusterTaskManager:
         results = {
             'type': 'cluster',
             'result': {
-                'nodes': tree.nodes,
-                'distance': tree.distance
+                'nodes': tree['nodes'],
+                'distance': tree['distance']
             }
         }
         return results
