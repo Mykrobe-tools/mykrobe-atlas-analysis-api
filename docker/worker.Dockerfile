@@ -42,6 +42,15 @@ WORKDIR /usr/src/app
 RUN wget https://github.com/lh3/bwa/releases/download/v${bwa_version}/bwa-${bwa_version}.tar.bz2 -O - | tar xfj -
 RUN cd bwa-${bwa_version} && make
 
+## Install berkeleydb
+ENV BERKELEY_VERSION 4.8.30
+# Download, configure and install BerkeleyDB
+RUN wget -P /tmp http://download.oracle.com/berkeley-db/db-"${BERKELEY_VERSION}".tar.gz && \
+    tar -xf /tmp/db-"${BERKELEY_VERSION}".tar.gz -C /tmp && \
+    rm -f /tmp/db-"${BERKELEY_VERSION}".tar.gz
+RUN cd /tmp/db-"${BERKELEY_VERSION}"/build_unix && \
+    ../dist/configure && make && make install
+
 # Python requirements
 WORKDIR /usr/src/app
 COPY requirements.txt .

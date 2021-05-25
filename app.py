@@ -18,6 +18,7 @@ except ImportError:
 from analyses import PredictorTaskManager
 from analyses import BigsiTaskManager
 from analyses import DistanceTaskManager
+from analyses import ClusterTaskManager
 from analyses import MappingsManager
 
 from celery import Celery
@@ -212,7 +213,7 @@ def tree(version):
 
 
 TREE_PATH = {"1.0": TB_TREE_PATH_V1}
-DEFAULT_MAX_NN_DISTANCE = 100
+DEFAULT_MAX_NN_DISTANCE = 10
 DEFAULT_MAX_NN_EXPERIMENTS = 1000
 
 
@@ -237,6 +238,27 @@ def distance():
     kwargs = data.get("params", {})
 
     res = distance_query_task.delay(sample_id, callback_url, **kwargs)
+    response = json.dumps({"result": "success", "task_id": str(res)}), 200
+    return response
+
+
+@celery.task()
+def cluster_query_task(sample_id, callback_url, max_distance=None):
+    if max_distance is None:
+        max_distance = DEFAULT_MAX_NN_DISTANCE
+    results = ClusterTaskManager.get_cluster(sample_id, max_distance)
+    callback_url = urljoin(ATLAS_API, callback_url)
+    atlas_client.request("POST", callback_url, json=results)
+
+
+@app.route("/cluster", methods=["POST"])
+def cluster():
+    data = request.get_json()
+    sample_id = data.get("sample_id", "")
+    callback_url = data.get("callback_url", "")
+    kwargs = data.get("params", {})
+
+    res = cluster_query_task.delay(sample_id, callback_url, **kwargs)
     response = json.dumps({"result": "success", "task_id": str(res)}), 200
     return response
 

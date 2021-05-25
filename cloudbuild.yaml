@@ -84,7 +84,7 @@ steps:
     entrypoint: "bash"
     args: ["cloudbuild-deploy.sh"]
 
-timeout: 1200s
+timeout: 1500s
 
 substitutions:
   _IMAGE_REPOSITORY: eu.gcr.io/atlas-275810/mykrobe-atlas-analysis-api
