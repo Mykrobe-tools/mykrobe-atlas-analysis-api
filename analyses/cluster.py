@@ -53,7 +53,7 @@ def _extract_minimum_spanning_tree(samples, mst):
     for index, grouped_samples in enumerate(grouped_sets):
         nodes.append({
             "id": index,
-            "samples": grouped_samples
+            "samples": list(grouped_samples)
         })
         for sample in grouped_samples:
             sample_to_node_id[sample] = index
@@ -122,9 +122,6 @@ class ClusterTaskManager:
             }
         results = {
             'type': 'cluster',
-            'result': {
-                'nodes': tree['nodes'],
-                'distance': tree['distance']
-            }
+            'result': tree
         }
         return results
