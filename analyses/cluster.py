@@ -122,6 +122,9 @@ class ClusterTaskManager:
             }
         results = {
             'type': 'cluster',
-            'result': tree
+            'result': {
+                'nodes': tree.nodes,
+                'distance': tree.distance
+            }
         }
         return results
