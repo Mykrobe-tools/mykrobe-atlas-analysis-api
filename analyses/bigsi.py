@@ -188,6 +188,13 @@ class BigsiTaskManager:
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
         self._requests_post(self.merge_url, merge_query)
 
+        logging.log(level=logging.DEBUG, msg="build_bigsi cleaning up")
+        # We can not remove the new bigsi db and config file because the merge can be still
+        # ongoing at this point. We can not remove the bloom filters either as that will be
+        # used for calculating distance
+        os.remove(uncleaned_ctx)
+        os.remove(cleaned_ctx)
+
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 
     def _trigger_distance_build_task(self, bloom, sample_id, callback_url, kwargs):
