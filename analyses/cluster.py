@@ -32,18 +32,28 @@ def _extract_minimum_spanning_tree(samples, mst):
     for row in range(num_samples - 1):
         for col in range(row + 1, num_samples):
             if matrix[row][col] == 1:
-                new_set = True
-                for s in grouped_sets:
+                row_in_set = -1
+                col_in_set = -1
+                for index, s in enumerate(grouped_sets):
                     if samples[row] in s:
-                        s.add(samples[col])
-                        new_set = False
-                        break
-                    elif samples[col] in s:
-                        s.add(samples[row])
-                        new_set = False
-                        break
-                if new_set:
+                        row_in_set = index
+                    if samples[col] in s:
+                        col_in_set = index
+                if row_in_set == -1 and col_in_set == -1:
                     grouped_sets.append({samples[row], samples[col]})
+                elif row_in_set >= 0 and col_in_set >= 0:
+                    if row_in_set != col_in_set:
+                        grouped_sets.append(grouped_sets[row_in_set].union(grouped_sets[col_in_set]))
+                        if row_in_set > col_in_set:
+                            grouped_sets.pop(row_in_set)
+                            grouped_sets.pop(col_in_set)
+                        else:
+                            grouped_sets.pop(col_in_set)
+                            grouped_sets.pop(row_in_set)
+                elif row_in_set >= 0:
+                    grouped_sets[row_in_set].add(samples[col])
+                else:
+                    grouped_sets[col_in_set].add(samples[row])
                 matrix[row][col] = 0
 
     # second iteration connects those grouped sets and other singletons
