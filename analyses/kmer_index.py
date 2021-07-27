@@ -16,39 +16,29 @@ POLL_INTERVAL_SECONDS = 6
 logger = logging.getLogger(__name__)
 
 
-class BigsiTaskManager:
-    def __init__(self, bigsi_api_url, reference_filepath, genbank_filepath, outdir="", bigsi_build_url="",
-                 bigsi_build_config=""):
-        self.bigsi_api_url = bigsi_api_url
-        self.bigsi_build_url = bigsi_build_url
-        self.bigsi_build_config = bigsi_build_config
+class KmerIndexTaskManager:
+    def __init__(self, kmer_search_api_url, reference_filepath, genbank_filepath, outdir="", kmer_index_build_url=""):
+        self.kmer_search_api_url = kmer_search_api_url
+        self.kmer_index_build_url = kmer_index_build_url
         self.reference_filepath = reference_filepath
         self.genbank_filepath = genbank_filepath
         self.outdir = outdir
 
     @property
     def sequence_search_url(self):
-        return "/".join([self.bigsi_api_url, "searches/"])
+        return "/".join([self.kmer_search_api_url, "searches/"])
 
     @property
     def variant_search_url(self):
-        return "/".join([self.bigsi_api_url, "variant_searches/"])
+        return "/".join([self.kmer_search_api_url, "variant_searches/"])
 
     @property
     def prot_variant_search_url(self):
-        return "/".join([self.bigsi_api_url, "variant_searches/"])
-
-    @property
-    def bloom_url(self):
-        return "/".join([self.bigsi_build_url, "bloom"])
+        return "/".join([self.kmer_search_api_url, "variant_searches/"])
 
     @property
     def build_url(self):
-        return "/".join([self.bigsi_build_url, "build"])
-
-    @property
-    def merge_url(self):
-        return "/".join([self.bigsi_build_url, "merge"])
+        return "/".join([self.kmer_index_build_url, "build"])
 
     def _query(self, query, search_url):
         r = requests.post(search_url, data=query).json()
@@ -109,12 +99,9 @@ class BigsiTaskManager:
         # {"reference":"NC_000962.3.fasta", "ref": "S", "pos":450, "alt":"L", "genbank":"NC_000962.3.gb", "gene":"rpoB"}'
         return self._query(query, search_url)
 
-    def build_bigsi(self, files, sample_id, callback_url, kwargs):
+    def build_kmer_index(self, files, sample_id, callback_url, kwargs):
         uncleaned_ctx = os.path.join(self.outdir, "{sample_id}_uncleaned.ctx".format(sample_id=sample_id))
         cleaned_ctx = os.path.join(self.outdir, "{sample_id}.ctx".format(sample_id=sample_id))
-        bloom = os.path.join(self.outdir, "{sample_id}.bloom".format(sample_id=sample_id))
-        bigsi_config_path = os.path.join(self.outdir, "{sample_id}_bigsi.config".format(sample_id=sample_id))
-        bigsi_db_path = os.path.join(self.outdir, "{sample_id}_bigsi.db".format(sample_id=sample_id))
 
         files_with_flags = list(itertools.chain.from_iterable([("-1", f) for f in files]))
 
@@ -152,26 +139,8 @@ class BigsiTaskManager:
         logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
 
-        bloom_query = {
-            "ctx": cleaned_ctx,
-            "outfile": bloom,
-        }
-        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.bloom_url, json.dumps(bloom_query)))
-        self._requests_post(self.bloom_url, bloom_query)
-        self._wait_until_available(bloom)
+        # self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
 
-        self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
-
-        with open(bigsi_config_path, "w") as conf:
-            conf.write("h: 1\n")
-            conf.write("k: 31\n")
-            conf.write("m: 28000000\n")
-            conf.write("nproc: 1\n")
-            conf.write("storage-engine: berkeleydb\n")
-            conf.write("storage-config:\n")
-            conf.write("  filename: {}\n".format(bigsi_db_path))
-            conf.write("  flag: \"c\"")
-        self._wait_until_available(bigsi_config_path)
         build_query = {
             "bloomfilters": [bloom],
             "samples": [sample_id],
@@ -181,14 +150,7 @@ class BigsiTaskManager:
         self._requests_post(self.build_url, build_query)
         self._wait_until_available(bigsi_db_path)
 
-        merge_query = {
-            "config": self.bigsi_build_config,
-            "merge_config": bigsi_config_path
-        }
-        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
-        self._requests_post(self.merge_url, merge_query)
-
-        logging.log(level=logging.DEBUG, msg="build_bigsi cleaning up")
+        logging.log(level=logging.DEBUG, msg="build_kmer_index cleaning up")
         # We can not remove the new bigsi db and config file because the merge can be still
         # ongoing at this point. We can not remove the bloom filters either as that will be
         # used for calculating distance
