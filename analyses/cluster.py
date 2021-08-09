@@ -144,7 +144,7 @@ class ClusterTaskManager:
         logger.debug('Building cluster for %s', sample_id)
 
         # first prepare the distance matrix for new sample's neighbours
-        neighbours_of_new_sample = [sample_id] + nearest_neighbours.keys()
+        neighbours_of_new_sample = [sample_id] + list(nearest_neighbours)
         num_neighbours_of_new_sample = len(neighbours_of_new_sample)
         neighbours_of_new_sample_index_map = {}
         for index, neighbour_of_new_sample in enumerate(neighbours_of_new_sample):
