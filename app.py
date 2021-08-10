@@ -92,6 +92,12 @@ def bigsi_build_task(files, sample_id, callback_url, kwargs):
 def distance_build_task(bloomfilter, sample_id, callback_url, kwargs):
     DistanceTaskManager.build_distance(bloomfilter, sample_id, callback_url, kwargs)
 
+
+@celery.task()
+def cluster_build_task(sample_id, nearest_neighbours, callback_url):
+    ClusterTaskManager.build_cluster(sample_id, nearest_neighbours, callback_url)
+
+
 @celery.task()
 def predictor_task(files, sample_id, callback_url):
     results = PredictorTaskManager(DEFAULT_OUTDIR, SKELETON_DIR).run_predictor(files, sample_id)
