@@ -169,7 +169,7 @@ class ClusterTaskManager:
                 continue
             old_neighbours = neighbours_of_the_neighbour.split(',')
             num_old_neighbours = len(old_neighbours)
-            old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
+            old_distance_matrix = np.frombuffer(ast.literal_eval(str(distances_of_the_neighbour)), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
             new_neighbours = old_neighbours + [sample_id]
             num_new_neighbours = len(new_neighbours)
             new_distance_matrix = np.zeros((num_new_neighbours, num_new_neighbours), dtype=np.uint8)
