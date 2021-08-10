@@ -176,7 +176,7 @@ class ClusterTaskManager:
                     new_distance_matrix[row][num_new_neighbours-1] = nearest_neighbours[old_neighbour] + 1
             # update records
             storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + the_neighbour)] = ','.join(new_neighbours).encode("utf-8")
-            storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + the_neighbour)] = new_distance_matrix.tostring().encode("utf-8")
+            storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + the_neighbour)] = new_distance_matrix.tostring()
 
             # third update the new sample's distance matrix with the distances between one of its neighbours and another
             the_neighbour_index_in_old_neighbours = old_neighbours.index(the_neighbour)

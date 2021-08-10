@@ -121,9 +121,9 @@ def analyse_new_sample():
     callback_url = data.get("callback_url", "")
     kwargs = data.get("params", {})
 
-    res = predictor_task.delay(files, sample_id, callback_url)
+    # res = predictor_task.delay(files, sample_id, callback_url)
     res = bigsi_build_task.delay(files, sample_id, callback_url, kwargs)
-    res = qc_task.delay(files, sample_id)
+    # res = qc_task.delay(files, sample_id)
 
     # MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
