@@ -162,6 +162,8 @@ class ClusterTaskManager:
             try:
                 neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
             except:
+                pass
+            if not neighbours_of_the_neighbour or not distances_of_the_neighbour:
                 continue
             old_neighbours = neighbours_of_the_neighbour.split(',')
             num_old_neighbours = len(old_neighbours)
