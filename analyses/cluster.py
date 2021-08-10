@@ -159,6 +159,8 @@ class ClusterTaskManager:
 
         # second update all neighbours with this new sample
         for the_neighbour in nearest_neighbours:
+            neighbours_of_the_neighbour = ''
+            distances_of_the_neighbour = ''
             try:
                 neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
             except:
