@@ -117,7 +117,7 @@ def _query_for_mst(sample_id, berkeley_db_file):
     samples = neighbours.split(',')
     num_samples = len(samples)
     input_matrix = csr_matrix(
-        np.frombuffer(ast.literal_eval(str(distances)), dtype=np.uint8).reshape(num_samples, num_samples))
+        np.frombuffer(ast.literal_eval(distances), dtype=np.uint8).reshape(num_samples, num_samples))
     mst = minimum_spanning_tree(input_matrix)
     tree = _extract_minimum_spanning_tree(samples, mst)
     return tree
@@ -169,7 +169,7 @@ class ClusterTaskManager:
                 continue
             old_neighbours = neighbours_of_the_neighbour.split(',')
             num_old_neighbours = len(old_neighbours)
-            old_distance_matrix = np.frombuffer(ast.literal_eval(str(distances_of_the_neighbour)), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
+            old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
             new_neighbours = old_neighbours + [sample_id]
             num_new_neighbours = len(new_neighbours)
             new_distance_matrix = np.zeros((num_new_neighbours, num_new_neighbours), dtype=np.uint8)
@@ -183,7 +183,7 @@ class ClusterTaskManager:
                     new_distance_matrix[row][num_new_neighbours-1] = nearest_neighbours[old_neighbour] + 1
             # update records
             storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + the_neighbour)] = ','.join(new_neighbours).encode("utf-8")
-            storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + the_neighbour)] = new_distance_matrix.tostring()
+            storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + the_neighbour)] = str(new_distance_matrix.tostring()).encode("utf-8")
 
             # third update the new sample's distance matrix with the distances between one of its neighbours and another
             the_neighbour_index_in_old_neighbours = old_neighbours.index(the_neighbour)
@@ -199,7 +199,7 @@ class ClusterTaskManager:
 
         # fourth store the records for the new sample
         storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + sample_id)] = ','.join(neighbours_of_new_sample).encode("utf-8")
-        storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + sample_id)] = distance_matrix_of_new_sample.tostring()
+        storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + sample_id)] = str(distance_matrix_of_new_sample.tostring()).encode("utf-8")
 
         storage.sync()
         storage.close()
