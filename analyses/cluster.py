@@ -192,7 +192,7 @@ class ClusterTaskManager:
 
         # fourth store the records for the new sample
         storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + sample_id)] = ','.join(neighbours_of_new_sample).encode("utf-8")
-        storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + sample_id)] = distance_matrix_of_new_sample.tostring().encode("utf-8")
+        storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + sample_id)] = distance_matrix_of_new_sample.tostring()
 
         storage.sync()
         storage.close()
