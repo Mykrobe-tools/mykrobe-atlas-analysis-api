@@ -117,7 +117,7 @@ def _query_for_mst(sample_id, berkeley_db_file):
     samples = neighbours.split(',')
     num_samples = len(samples)
     input_matrix = csr_matrix(
-        np.frombuffer(ast.literal_eval(distances), dtype=np.uint8).reshape(num_samples, num_samples))
+        np.frombuffer(ast.literal_eval(str(distances)), dtype=np.uint8).reshape(num_samples, num_samples))
     mst = minimum_spanning_tree(input_matrix)
     tree = _extract_minimum_spanning_tree(samples, mst)
     return tree
