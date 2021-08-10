@@ -159,7 +159,10 @@ class ClusterTaskManager:
 
         # second update all neighbours with this new sample
         for the_neighbour in nearest_neighbours:
-            neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
+            try:
+                neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
+            except:
+                continue
             old_neighbours = neighbours_of_the_neighbour.split(',')
             num_old_neighbours = len(old_neighbours)
             old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
