@@ -161,8 +161,8 @@ class ClusterTaskManager:
         for the_neighbour in nearest_neighbours:
             neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
             old_neighbours = neighbours_of_the_neighbour.split(',')
-            old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
             num_old_neighbours = len(old_neighbours)
+            old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
             new_neighbours = old_neighbours + [sample_id]
             num_new_neighbours = len(new_neighbours)
             new_distance_matrix = np.zeros((num_new_neighbours, num_new_neighbours), dtype=np.uint8)
