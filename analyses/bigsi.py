@@ -162,38 +162,38 @@ class BigsiTaskManager:
 
         self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
 
-        # with open(bigsi_config_path, "w") as conf:
-        #     conf.write("h: 1\n")
-        #     conf.write("k: 31\n")
-        #     conf.write("m: 28000000\n")
-        #     conf.write("nproc: 1\n")
-        #     conf.write("storage-engine: berkeleydb\n")
-        #     conf.write("storage-config:\n")
-        #     conf.write("  filename: {}\n".format(bigsi_db_path))
-        #     conf.write("  flag: \"c\"")
-        # self._wait_until_available(bigsi_config_path)
-        # build_query = {
-        #     "bloomfilters": [bloom],
-        #     "samples": [sample_id],
-        #     "config": bigsi_config_path
-        # }
-        # logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.build_url, json.dumps(build_query)))
-        # self._requests_post(self.build_url, build_query)
-        # self._wait_until_available(bigsi_db_path)
-        #
-        # merge_query = {
-        #     "config": self.bigsi_build_config,
-        #     "merge_config": bigsi_config_path
-        # }
-        # logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
-        # self._requests_post(self.merge_url, merge_query)
-        #
-        # logging.log(level=logging.DEBUG, msg="build_bigsi cleaning up")
-        # # We can not remove the new bigsi db and config file because the merge can be still
-        # # ongoing at this point. We can not remove the bloom filters either as that will be
-        # # used for calculating distance
-        # os.remove(uncleaned_ctx)
-        # os.remove(cleaned_ctx)
+        with open(bigsi_config_path, "w") as conf:
+            conf.write("h: 1\n")
+            conf.write("k: 31\n")
+            conf.write("m: 28000000\n")
+            conf.write("nproc: 1\n")
+            conf.write("storage-engine: berkeleydb\n")
+            conf.write("storage-config:\n")
+            conf.write("  filename: {}\n".format(bigsi_db_path))
+            conf.write("  flag: \"c\"")
+        self._wait_until_available(bigsi_config_path)
+        build_query = {
+            "bloomfilters": [bloom],
+            "samples": [sample_id],
+            "config": bigsi_config_path
+        }
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.build_url, json.dumps(build_query)))
+        self._requests_post(self.build_url, build_query)
+        self._wait_until_available(bigsi_db_path)
+
+        merge_query = {
+            "config": self.bigsi_build_config,
+            "merge_config": bigsi_config_path
+        }
+        logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.merge_url, json.dumps(merge_query)))
+        self._requests_post(self.merge_url, merge_query)
+
+        logging.log(level=logging.DEBUG, msg="build_bigsi cleaning up")
+        # We can not remove the new bigsi db and config file because the merge can be still
+        # ongoing at this point. We can not remove the bloom filters either as that will be
+        # used for calculating distance
+        os.remove(uncleaned_ctx)
+        os.remove(cleaned_ctx)
 
         logging.log(level=logging.DEBUG, msg="build_bigsi complete")
 

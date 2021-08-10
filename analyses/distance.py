@@ -217,23 +217,23 @@ class DistanceTaskManager:
         logger.debug('Triggering cluster build task')
         cls._trigger_cluster_build_task(sample_id, nearest_neighbours, callback_url)
 
-        # logger.debug('Updating distance API with new sample')
-        # leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
-        # neighbours = [distance_client.Neighbour(n, d) for n, d in nearest_neighbours.items()]
-        # sample_to_update = distance_client.Sample(experiment_id=sample_id, nearest_leaf_node=leaf_node,
-        #                                           nearest_neighbours=neighbours)
-        # try:
-        #     samples_post_api_instance.samples_post(sample_to_update)
-        # except ApiException:
-        #     logger.debug('ApiException when updating distance API')
-        #
-        # logger.debug('Updating Atlas API with new distance results')
-        # cls._update_atlas_api_with_new_distance_results(callback_url, kwargs, sample_id)
-        #
-        # duration = int((time.time() - start_time) * 1000)
-        # record_event(sample_id, EventName.DISTANCE_CALCULATION, software='analysis-api-worker',
-        #              software_version='unknown', start_timestamp=start_time,
-        #              duration=duration, command='build_distance')
+        logger.debug('Updating distance API with new sample')
+        leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
+        neighbours = [distance_client.Neighbour(n, d) for n, d in nearest_neighbours.items()]
+        sample_to_update = distance_client.Sample(experiment_id=sample_id, nearest_leaf_node=leaf_node,
+                                                  nearest_neighbours=neighbours)
+        try:
+            samples_post_api_instance.samples_post(sample_to_update)
+        except ApiException:
+            logger.debug('ApiException when updating distance API')
+
+        logger.debug('Updating Atlas API with new distance results')
+        cls._update_atlas_api_with_new_distance_results(callback_url, kwargs, sample_id)
+
+        duration = int((time.time() - start_time) * 1000)
+        record_event(sample_id, EventName.DISTANCE_CALCULATION, software='analysis-api-worker',
+                     software_version='unknown', start_timestamp=start_time,
+                     duration=duration, command='build_distance')
 
     @classmethod
     def _update_atlas_api_with_new_distance_results(cls, callback_url, kwargs, sample_id):
