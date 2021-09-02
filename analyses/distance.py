@@ -191,7 +191,7 @@ class DistanceTaskManager:
 
         results = {
             'type': 'distance',
-            'leafId': sample.nearest_leaf_node.leaf_id,
+            'leafId': sample.nearest_leaf_node.leaf_id if sample.nearest_leaf_node else None,
             'result': nearest_neighbours
         }
         return results
