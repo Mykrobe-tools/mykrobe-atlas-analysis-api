@@ -11,7 +11,7 @@ services:
       REFERENCE_FILEPATH: data/NC_000962.3.fasta
       ATLAS_AUTH_SERVER: https://accounts-dev.mykro.be/auth
       ATLAS_AUTH_CLIENT_ID: analysis-api
-      ATLAS_AUTH_CLIENT_SECRET: 66011b88-e780-4997-a518-b1b42bccdd1f
+      ATLAS_AUTH_CLIENT_SECRET: dcb8456c-c48c-4413-87f1-c2ad42f5ba91
       ATLAS_AUTH_REALM: atlas
     volumes:
     - ./uploads:/uploads:ro
@@ -27,7 +27,7 @@ services:
     environment:
       ATLAS_AUTH_SERVER: https://accounts-dev.mykro.be/auth
       ATLAS_AUTH_CLIENT_ID: analysis-api
-      ATLAS_AUTH_CLIENT_SECRET: 66011b88-e780-4997-a518-b1b42bccdd1f
+      ATLAS_AUTH_CLIENT_SECRET: dcb8456c-c48c-4413-87f1-c2ad42f5ba91
       ATLAS_AUTH_REALM: atlas
     links:
       - redis
