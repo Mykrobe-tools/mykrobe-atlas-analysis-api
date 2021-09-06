@@ -1,9 +1,12 @@
 import ast
 import os
+import logging
 from bsddb3 import db
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree
+
+logger = logging.getLogger(__name__)
 
 DB_KEY_PREFIX_NEIGHBOURS = "n"
 DB_KEY_PREFIX_DISTANCES = "d"
@@ -135,3 +138,76 @@ class ClusterTaskManager:
             'result': tree
         }
         return results
+
+    @classmethod
+    def build_cluster(cls, sample_id, nearest_neighbours, callback_url):
+        logger.debug('Building cluster for %s', sample_id)
+
+        # first prepare the distance matrix for new sample's neighbours
+        neighbours_of_new_sample = [sample_id] + list(nearest_neighbours)
+        num_neighbours_of_new_sample = len(neighbours_of_new_sample)
+        neighbours_of_new_sample_index_map = {}
+        for index, neighbour_of_new_sample in enumerate(neighbours_of_new_sample):
+            neighbours_of_new_sample_index_map[neighbour_of_new_sample] = index
+        distance_matrix_of_new_sample = np.zeros((num_neighbours_of_new_sample, num_neighbours_of_new_sample), dtype=np.uint8)
+        for neighbour_of_new_sample in nearest_neighbours:
+            # fill in the distances between new sample and its neighbours first
+            distance_matrix_of_new_sample[0][neighbours_of_new_sample_index_map[neighbour_of_new_sample]] = nearest_neighbours[neighbour_of_new_sample] + 1
+
+        storage = db.DB()
+        storage.open(CLUSTER_DB_PATH, None, db.DB_HASH, db.DB_CREATE)
+
+        # second update all neighbours with this new sample
+        for the_neighbour in nearest_neighbours:
+            neighbours_of_the_neighbour = ''
+            distances_of_the_neighbour = ''
+            try:
+                neighbours_of_the_neighbour, distances_of_the_neighbour = _query_db(CLUSTER_DB_PATH, the_neighbour)
+            except:
+                pass
+            if not neighbours_of_the_neighbour or not distances_of_the_neighbour:
+                continue
+            old_neighbours = neighbours_of_the_neighbour.split(',')
+            num_old_neighbours = len(old_neighbours)
+            old_distance_matrix = np.frombuffer(ast.literal_eval(distances_of_the_neighbour), dtype=np.uint8).reshape(num_old_neighbours, num_old_neighbours)
+            new_neighbours = old_neighbours + [sample_id]
+            num_new_neighbours = len(new_neighbours)
+            new_distance_matrix = np.zeros((num_new_neighbours, num_new_neighbours), dtype=np.uint8)
+            # copy from old matrix
+            for row in range(num_old_neighbours-1):
+                for col in range(row, num_old_neighbours):
+                    new_distance_matrix[row][col] = old_distance_matrix[row][col]
+            # fill last column for distances with new sample
+            for row, old_neighbour in enumerate(old_neighbours):
+                if old_neighbour in nearest_neighbours:
+                    new_distance_matrix[row][num_new_neighbours-1] = nearest_neighbours[old_neighbour] + 1
+            # update records
+            storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + the_neighbour)] = ','.join(new_neighbours).encode("utf-8")
+            storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + the_neighbour)] = str(new_distance_matrix.tostring()).encode("utf-8")
+
+            # third update the new sample's distance matrix with the distances between one of its neighbours and another
+            the_neighbour_index_in_old_neighbours = old_neighbours.index(the_neighbour)
+            the_neighbour_index_in_neighbours_of_new_sample = neighbours_of_new_sample_index_map[the_neighbour]
+            for old_neighbour_index_in_old_neighbours, old_neighbour in enumerate(old_neighbours):
+                if old_neighbour in neighbours_of_new_sample_index_map:
+                    old_neighbour_index_in_neighbours_of_new_sample = neighbours_of_new_sample_index_map[old_neighbour]
+                    if the_neighbour_index_in_neighbours_of_new_sample < old_neighbour_index_in_neighbours_of_new_sample:
+                        if the_neighbour_index_in_old_neighbours < old_neighbour_index_in_old_neighbours:
+                            distance_matrix_of_new_sample[the_neighbour_index_in_neighbours_of_new_sample][old_neighbour_index_in_neighbours_of_new_sample] = old_distance_matrix[the_neighbour_index_in_old_neighbours][old_neighbour_index_in_old_neighbours]
+                        else:
+                            distance_matrix_of_new_sample[the_neighbour_index_in_neighbours_of_new_sample][old_neighbour_index_in_neighbours_of_new_sample] = old_distance_matrix[old_neighbour_index_in_old_neighbours][the_neighbour_index_in_old_neighbours]
+
+        # fourth store the records for the new sample
+        storage[_convert_key_to_bytes(DB_KEY_PREFIX_NEIGHBOURS + sample_id)] = ','.join(neighbours_of_new_sample).encode("utf-8")
+        storage[_convert_key_to_bytes(DB_KEY_PREFIX_DISTANCES + sample_id)] = str(distance_matrix_of_new_sample.tostring()).encode("utf-8")
+
+        storage.sync()
+        storage.close()
+
+        logger.debug('Updating Atlas API with new cluster results')
+        cls._update_atlas_api_with_new_cluster_results(sample_id, callback_url)
+
+    @classmethod
+    def _update_atlas_api_with_new_cluster_results(cls, sample_id, callback_url):
+        from app import cluster_query_task # TODO: refactor this to remove cyclic dependency
+        cluster_query_task.delay(sample_id, callback_url)

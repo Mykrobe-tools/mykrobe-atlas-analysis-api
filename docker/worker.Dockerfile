@@ -1,5 +1,5 @@
 ARG mykrobe_version=0.9.0
-ARG bwa_version=0.7.15
+ARG bwa_version=3ddd7b87d41f89a404d95f083fb37c369f70d783
 ARG samtools_version=1.3.1
 ARG mccortex_version=geno_kmer_count
 
@@ -39,8 +39,10 @@ RUN cd samtools-${samtools_version} && make
 
 # Build bwa
 WORKDIR /usr/src/app
-RUN wget https://github.com/lh3/bwa/releases/download/v${bwa_version}/bwa-${bwa_version}.tar.bz2 -O - | tar xfj -
-RUN cd bwa-${bwa_version} && make
+RUN git clone https://github.com/lh3/bwa.git
+WORKDIR bwa
+RUN git checkout ${bwa_version}
+RUN make
 
 ## Install berkeleydb
 ENV BERKELEY_VERSION 4.8.30
@@ -53,11 +55,11 @@ RUN cd /tmp/db-"${BERKELEY_VERSION}"/build_unix && \
 
 # Python requirements
 WORKDIR /usr/src/app
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
 # Runtime image
-FROM python:3.6-slim-buster
+FROM python:3.6-slim
 ARG mykrobe_version
 ARG bwa_version
 ARG samtools_version

@@ -191,7 +191,7 @@ class DistanceTaskManager:
 
         results = {
             'type': 'distance',
-            'leafId': sample.nearest_leaf_node.leaf_id,
+            'leafId': sample.nearest_leaf_node.leaf_id if sample.nearest_leaf_node else None,
             'result': nearest_neighbours
         }
         return results
@@ -214,6 +214,8 @@ class DistanceTaskManager:
         logger.debug('Calculating nearest leaf and nearest neighbours')
         nearest_leaf, nearest_leaf_distance = _get_nearest_leaf(sample_id)
         nearest_neighbours = _get_nearest_neighbours(sample_id)
+        logger.debug('Triggering cluster build task')
+        cls._trigger_cluster_build_task(sample_id, nearest_neighbours, callback_url)
 
         logger.debug('Updating distance API with new sample')
         leaf_node = distance_client.NearestLeaf(nearest_leaf, nearest_leaf_distance)
@@ -237,3 +239,9 @@ class DistanceTaskManager:
     def _update_atlas_api_with_new_distance_results(cls, callback_url, kwargs, sample_id):
         from app import distance_query_task # TODO: refactor this to remove cyclic dependency
         distance_query_task.delay(sample_id, callback_url, **kwargs)
+
+
+    @classmethod
+    def _trigger_cluster_build_task(cls, sample_id, nearest_neighbours, callback_url):
+        from app import cluster_build_task  # TODO: refactor this to remove cyclic dependency
+        cluster_build_task.delay(sample_id, nearest_neighbours, callback_url)

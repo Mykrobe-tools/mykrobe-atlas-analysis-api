@@ -9,10 +9,8 @@ docker-compose.yaml
 /docker/
 /docs/
 /k8/
-/tests/
 /uploads/
 .*ignore
 cloudbuild*
 Makefile
 *.md
-test_requirements.txt
