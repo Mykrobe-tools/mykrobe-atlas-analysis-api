@@ -5,9 +5,8 @@ from flask import request
 
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
-from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
-    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
-    ATLAS_AUTH_CLIENT_SECRET, KMERSEARCH_API_URL
+from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, REFERENCE_FILEPATH,\
+    GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET, KMERSEARCH_API_URL
 from helpers.atlas.client import AtlasClient
 
 try:
@@ -82,10 +81,9 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(files, sample_id, callback_url, kwargs):
-    bigsi_tm = KmerIndexTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
-                                    BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_kmer_index(files, sample_id, callback_url, kwargs)
+def kmer_index_build_task(files, sample_id, callback_url, kwargs):
+    kmer_index_tm = KmerIndexTaskManager(KMERSEARCH_API_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR)
+    kmer_index_tm.build_kmer_index(files, sample_id, callback_url, kwargs)
 
 
 @celery.task()
@@ -122,8 +120,8 @@ def analyse_new_sample():
     kwargs = data.get("params", {})
 
     res = predictor_task.delay(files, sample_id, callback_url)
-    res = bigsi_build_task.delay(files, sample_id, callback_url, kwargs)
-    res = qc_task.delay(files, sample_id)
+    res = kmer_index_build_task.delay(files, sample_id, callback_url, kwargs)
+    # res = qc_task.delay(files, sample_id)
 
     # MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200

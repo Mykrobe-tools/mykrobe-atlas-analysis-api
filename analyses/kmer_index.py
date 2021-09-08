@@ -15,28 +15,27 @@ logger = logging.getLogger(__name__)
 
 
 class KmerIndexTaskManager:
-    def __init__(self, kmer_search_api_url, reference_filepath, genbank_filepath, outdir="", kmer_index_build_url=""):
-        self.kmer_search_api_url = kmer_search_api_url
-        self.kmer_index_build_url = kmer_index_build_url
+    def __init__(self, kmer_index_api_url, reference_filepath, genbank_filepath, outdir=""):
+        self.kmer_index_api_url = kmer_index_api_url
         self.reference_filepath = reference_filepath
         self.genbank_filepath = genbank_filepath
         self.outdir = outdir
 
     @property
     def sequence_search_url(self):
-        return "/".join([self.kmer_search_api_url, "search"])
+        return "/".join([self.kmer_index_api_url, "search"])
 
     @property
     def variant_search_url(self):
-        return "/".join([self.kmer_search_api_url, "variant_search"])
+        return "/".join([self.kmer_index_api_url, "variant_search"])
 
     @property
     def prot_variant_search_url(self):
-        return "/".join([self.kmer_search_api_url, "variant_search"])
+        return "/".join([self.kmer_index_api_url, "variant_search"])
 
     @property
     def build_url(self):
-        return "/".join([self.kmer_index_build_url, "build"])
+        return "/".join([self.kmer_index_api_url, "build"])
 
     def _query(self, query, search_url):
         return requests.post(search_url, json=query, headers={'Content-type': 'application/json'}).json()
@@ -124,22 +123,16 @@ class KmerIndexTaskManager:
         # self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
 
         build_query = {
-            "bloomfilters": [bloom],
-            "samples": [sample_id],
-            "config": bigsi_config_path
+            "sample_paths": [cleaned_ctx],
+            "sample_names": [sample_id]
         }
         logging.log(level=logging.DEBUG, msg="POSTing to {} with {}".format(self.build_url, json.dumps(build_query)))
         self._requests_post(self.build_url, build_query)
-        self._wait_until_available(bigsi_db_path)
 
         logging.log(level=logging.DEBUG, msg="build_kmer_index cleaning up")
-        # We can not remove the new bigsi db and config file because the merge can be still
-        # ongoing at this point. We can not remove the bloom filters either as that will be
-        # used for calculating distance
         os.remove(uncleaned_ctx)
-        os.remove(cleaned_ctx)
 
-        logging.log(level=logging.DEBUG, msg="build_bigsi complete")
+        logging.log(level=logging.DEBUG, msg="build_kmer_index complete")
 
     def _trigger_distance_build_task(self, bloom, sample_id, callback_url, kwargs):
         from app import distance_build_task  # TODO: refactor this to remove cyclic dependency
@@ -157,8 +150,6 @@ class KmerIndexTaskManager:
             time.sleep(wait_time)
 
     def _requests_post(self, url, data):
-        # Some of the call takes longer than 1 minute due to slow disk. Bigsi disconnects the call after 1 minute (todo)
-        # Temporary hack
         try:
             requests.post(url, data)
         except requests.exceptions.ConnectionError as e:
