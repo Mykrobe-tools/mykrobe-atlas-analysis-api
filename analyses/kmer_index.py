@@ -24,15 +24,15 @@ class KmerIndexTaskManager:
 
     @property
     def sequence_search_url(self):
-        return "/".join([self.kmer_search_api_url, "searches/"])
+        return "/".join([self.kmer_search_api_url, "search"])
 
     @property
     def variant_search_url(self):
-        return "/".join([self.kmer_search_api_url, "variant_searches/"])
+        return "/".join([self.kmer_search_api_url, "variant_search"])
 
     @property
     def prot_variant_search_url(self):
-        return "/".join([self.kmer_search_api_url, "variant_searches/"])
+        return "/".join([self.kmer_search_api_url, "variant_search"])
 
     @property
     def build_url(self):

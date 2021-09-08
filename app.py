@@ -7,7 +7,7 @@ from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
 from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
     BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
-    ATLAS_AUTH_CLIENT_SECRET
+    ATLAS_AUTH_CLIENT_SECRET, KMERSEARCH_API_URL
 from helpers.atlas.client import AtlasClient
 
 try:
@@ -156,7 +156,7 @@ def kmer_search_task(query_type, query, user_id, search_id):
     logger.debug('user_id: %s', user_id)
     logger.debug('search_id: %s', search_id)
 
-    kmer_search_tm = KmerIndexTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
+    kmer_search_tm = KmerIndexTaskManager(KMERSEARCH_API_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
         "sequence": kmer_search_tm.seq_query,
