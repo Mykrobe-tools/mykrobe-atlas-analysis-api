@@ -10,8 +10,6 @@ import logging
 from analyses.tracking import record_event, EventName
 from config import MCCORTEX_VERSION
 
-MAX_POLL_COUNT = 50
-POLL_INTERVAL_SECONDS = 6
 
 logger = logging.getLogger(__name__)
 
@@ -41,28 +39,8 @@ class KmerIndexTaskManager:
         return "/".join([self.kmer_index_build_url, "build"])
 
     def _query(self, query, search_url):
-        r = requests.post(search_url, data=query).json()
-        if "id" not in r:
-            return {"error": "failed to complete bigsi query"}
-        _id = r["id"]
-        search_result_url = "".join([search_url, _id])
-        POLL = True
-        counter = 0
-        while POLL:
-            r = requests.get(search_result_url).json()
-            if r["status"] == "COMPLETE":
-                POLL = False
-                return r
-            counter += 1
-            if counter > MAX_POLL_COUNT:
-                POLL = False
-                return {"error": "failed to complete bigsi query"}
-            else:
-                time.sleep(POLL_INTERVAL_SECONDS)
-        if r["status"] == "COMPLETE":
-            return r
-        else:
-            return {"error": "failed to complete bigsi query"}
+        return requests.post(search_url, data=query).json()
+
 
     def seq_query(self, query):
         logger.info(self.seq_query.__name__)
