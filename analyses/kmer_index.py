@@ -39,7 +39,7 @@ class KmerIndexTaskManager:
         return "/".join([self.kmer_index_build_url, "build"])
 
     def _query(self, query, search_url):
-        return requests.post(search_url, data=query).json()
+        return requests.post(search_url, data=query, headers={'Content-type': 'application/json'}).json()
 
 
     def seq_query(self, query):
