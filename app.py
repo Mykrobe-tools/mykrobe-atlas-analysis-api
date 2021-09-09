@@ -154,6 +154,9 @@ def kmer_search_task(query_type, query, user_id, search_id):
     logger.debug('user_id: %s', user_id)
     logger.debug('search_id: %s', search_id)
 
+    if 'threshold' in query and query['threshold'] > 1.0:
+        query['threshold'] = query['threshold'] / 100.0
+
     kmer_search_tm = KmerIndexTaskManager(KMERSEARCH_API_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
