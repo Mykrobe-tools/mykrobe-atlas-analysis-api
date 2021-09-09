@@ -5,9 +5,8 @@ from flask import request
 
 from analyses.qc import run_qc
 from analyses.tracking import send_qc_result
-from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, BIGSI_URL, \
-    BIGSI_BUILD_URL, BIGSI_BUILD_CONFIG, REFERENCE_FILEPATH, GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, \
-    ATLAS_AUTH_CLIENT_SECRET
+from config import CELERY_BROKER_URL, DEFAULT_OUTDIR, SKELETON_DIR, ATLAS_API, TB_TREE_PATH_V1, REFERENCE_FILEPATH,\
+    GENBANK_FILEPATH, ATLAS_AUTH_CLIENT_ID, ATLAS_AUTH_CLIENT_SECRET, KMERSEARCH_API_URL
 from helpers.atlas.client import AtlasClient
 
 try:
@@ -16,7 +15,7 @@ except ImportError:
     from io import StringIO
 ## Celery setup
 from analyses import PredictorTaskManager
-from analyses import BigsiTaskManager
+from analyses import KmerIndexTaskManager
 from analyses import DistanceTaskManager
 from analyses import ClusterTaskManager
 from analyses import MappingsManager
@@ -82,10 +81,9 @@ def send_results(type, results, url, sub_type=None, request_type="POST"):
 
 
 @celery.task()
-def bigsi_build_task(files, sample_id, callback_url, kwargs):
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR, BIGSI_BUILD_URL,
-                                BIGSI_BUILD_CONFIG)
-    bigsi_tm.build_bigsi(files, sample_id, callback_url, kwargs)
+def kmer_index_build_task(files, sample_id, callback_url, kwargs):
+    kmer_index_tm = KmerIndexTaskManager(KMERSEARCH_API_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH, DEFAULT_OUTDIR)
+    kmer_index_tm.build_kmer_index(files, sample_id, callback_url, kwargs)
 
 
 @celery.task()
@@ -122,8 +120,8 @@ def analyse_new_sample():
     kwargs = data.get("params", {})
 
     res = predictor_task.delay(files, sample_id, callback_url)
-    res = bigsi_build_task.delay(files, sample_id, callback_url, kwargs)
-    res = qc_task.delay(files, sample_id)
+    res = kmer_index_build_task.delay(files, sample_id, callback_url, kwargs)
+    # res = qc_task.delay(files, sample_id)
 
     # MAPPER.create_mapping(sample_id, sample_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
@@ -141,7 +139,7 @@ def _hash(w):
     return h.hexdigest()[:24]
 
 
-def filter_bigsi_results(d):
+def filter_kmer_search_results(d):
     logger.debug('filtering on genotype results')
     d["results"] = [x for x in d["results"] if x["genotype"] != "0/0"]
     logger.debug('filtered results size: %s', len(d["results"]))
@@ -149,25 +147,28 @@ def filter_bigsi_results(d):
 
 
 @celery.task()
-def bigsi_query_task(query_type, query, user_id, search_id):
-    logger.info(bigsi_query_task.__name__)
+def kmer_search_task(query_type, query, user_id, search_id):
+    logger.info(kmer_search_task.__name__)
     logger.debug('query_type: %s', query_type)
     logger.debug('query: %s', query)
     logger.debug('user_id: %s', user_id)
     logger.debug('search_id: %s', search_id)
 
-    bigsi_tm = BigsiTaskManager(BIGSI_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
+    if 'threshold' in query and query['threshold'] > 1.0:
+        query['threshold'] = query['threshold'] / 100.0
+
+    kmer_search_tm = KmerIndexTaskManager(KMERSEARCH_API_URL, REFERENCE_FILEPATH, GENBANK_FILEPATH)
     out = {}
     results = {
-        "sequence": bigsi_tm.seq_query,
-        "dna-variant": bigsi_tm.dna_variant_query,
-        "protein-variant": bigsi_tm.protein_variant_query,
+        "sequence": kmer_search_tm.seq_query,
+        "dna-variant": kmer_search_tm.dna_variant_query,
+        "protein-variant": kmer_search_tm.protein_variant_query,
     }[query_type](query)
     out = results
     if "results" in out:
         logger.debug('results size: %s', len(out["results"]))
     if query_type in ["dna-variant", "protein-variant"] and "results" in out:
-        out = filter_bigsi_results(out)
+        out = filter_kmer_search_results(out)
     url = urljoin(ATLAS_API, f"/searches/{search_id}/results")
     send_results(query_type, out, url, request_type="PUT")
 
@@ -183,7 +184,7 @@ def search():
     query = data.get("query", "")
     user_id = data.get("user_id", "")
     search_id = data.get("search_id", "")
-    res = bigsi_query_task.delay(t, query, user_id, search_id)
+    res = kmer_search_task.delay(t, query, user_id, search_id)
     return json.dumps({"result": "success", "task_id": str(res)}), 200
 
 
