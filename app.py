@@ -87,8 +87,8 @@ def kmer_index_build_task(files, sample_id, callback_url, kwargs):
 
 
 @celery.task()
-def distance_build_task(bloomfilter, sample_id, callback_url, kwargs):
-    DistanceTaskManager.build_distance(bloomfilter, sample_id, callback_url, kwargs)
+def distance_build_task(cortex, sample_id, callback_url, kwargs):
+    DistanceTaskManager.build_distance(cortex, sample_id, callback_url, kwargs)
 
 
 @celery.task()
