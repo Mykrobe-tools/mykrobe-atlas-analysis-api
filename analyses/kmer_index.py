@@ -120,7 +120,7 @@ class KmerIndexTaskManager:
         logging.log(level=logging.DEBUG, msg="Running: {}".format(" ".join(clean_ctx_cmd)))
         out = subprocess.check_output(clean_ctx_cmd)
 
-        # self._trigger_distance_build_task(bloom, sample_id, callback_url, kwargs)
+        self._trigger_distance_build_task(cleaned_ctx, sample_id, callback_url, kwargs)
 
         build_query = {
             "sample_paths": [cleaned_ctx],
@@ -134,9 +134,9 @@ class KmerIndexTaskManager:
 
         logging.log(level=logging.DEBUG, msg="build_kmer_index complete")
 
-    def _trigger_distance_build_task(self, bloom, sample_id, callback_url, kwargs):
+    def _trigger_distance_build_task(self, cortex, sample_id, callback_url, kwargs):
         from app import distance_build_task  # TODO: refactor this to remove cyclic dependency
-        distance_build_task.delay(bloom, sample_id, callback_url, kwargs)
+        distance_build_task.delay(cortex, sample_id, callback_url, kwargs)
 
     def _wait_until_available(self, file_path, max_wait_time=128):
         # temporary hack, due to slow disk, the file may take some time to appear

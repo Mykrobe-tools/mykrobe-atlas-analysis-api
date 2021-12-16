@@ -4,11 +4,13 @@ import distance_client
 import redis
 import logging
 import time
+import mmh3
 
 from analyses.tracking import record_event, EventName
 from distance_client.rest import ApiException
 from distance_client.configuration import Configuration
 from bitarray import bitarray
+from helpers.cortex import extract_kmers_from_ctx, canonical_kmer
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,10 @@ configuration.host = os.environ.get("ATLAS_DISTANCE_API", "http://distance-api-s
 api_client = distance_client.ApiClient(configuration=configuration, pool_threads=NUM_API_CLIENT_THREADS)
 samples_get_api_instance = distance_client.SamplesGetApi(api_client)
 samples_post_api_instance = distance_client.SamplesPostApi(api_client)
+
+
+def _hash(element, seed, m):
+    return mmh3.hash(element, seed) % m
 
 
 def _sort_and_filter_distance_results(results, max_distance, limit):
@@ -64,6 +70,21 @@ def _genotype_with_bloomfilter_and_probes(bloomfilters, probes_hashes):
     for index in range(num_of_probes):
         genotypes[index] = _genoypte_single_site(bloomfilters, probes_hashes[index*KMER_SIZE*2 : (index+1)*KMER_SIZE*2])
     return genotypes
+
+
+def _convert_query_kmers(kmers):
+    for kmer in kmers:
+        yield canonical_kmer(kmer)
+
+
+def _generate_bloom_filters_from_cortex(cortex):
+    kmers = extract_kmers_from_ctx(cortex, BLOOMFILTER_SIZE)
+    kmers = _convert_query_kmers(kmers)
+    bloomfilters = bitarray(BLOOMFILTER_SIZE)
+    bloomfilters.setall(0)
+    for kmer in list(kmers):
+        bloomfilters[_hash(kmer, 0, BLOOMFILTER_SIZE)] = True
+    return bloomfilters
 
 
 def _get_homozygous_genotype_key(sample_name):
@@ -197,12 +218,10 @@ class DistanceTaskManager:
         return results
 
     @classmethod
-    def build_distance(cls, bloomfilter, sample_id, callback_url, kwargs):
+    def build_distance(cls, cortex, sample_id, callback_url, kwargs):
         start_time = time.time()
         logger.debug('Building distance for %s', sample_id)
-        bloom_filters = bitarray()
-        with open(bloomfilter, "rb") as bf:
-            bloom_filters.fromfile(bf)
+        bloom_filters = _generate_bloom_filters_from_cortex(cortex)
         probes_hashes = pickle.load(open("/usr/src/app/data/probes.hashes.pickle", "rb"))
 
         logger.debug('Genotyping with bloomfilter and probes')
